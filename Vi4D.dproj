@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{118EDD0F-C33A-461F-AC1D-241B96268751}</ProjectGuid>
         <MainSource>Vi4D.dpk</MainSource>
@@ -130,11 +130,8 @@
                     <Source Name="MainSource">Vi4D.dpk</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclIndyProtocols170.bpl">Indy 10 Protocols Design Time</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclMetropolisUILiveTile170.bpl">Embarcadero Metropolis UI Live Tile Standard Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclIPIndyImpl170.bpl">IP Abstraction Indy Implementation Design Time</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k170.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp170.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
                 <Parameters>
                     <Parameters Name="UseLauncher">False</Parameters>
