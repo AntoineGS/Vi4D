@@ -1,60 +1,52 @@
-# vi-delphi
+# Vi4D
 
 ## About The Project
 
-This package provides Vi keybinds for the Delphi IDE. This project is forked from the abandoned [VIDE](https://github.com/petdr/vide) repository.
+This package provides Vi keybinds for the Delphi IDE. This project is forked from the abandoned [Vi-Delphi](https://github.com/Tanikai/vi-delphi) project which is based on [VIDE](https://github.com/petdr/vide) repository.
+Thank you to both of those projects for the ideas and foundations. :)
 
 ## Installation
 
-- Clone the repo with ```git clone https://github.com/Tanikai/vi-delphi```
-
-### The easy way with Delphi Packages
-
-- Open the 'ViDelphi_Rio.dproj' project file in Delphi
+- Clone the repo
+- Open the 'Vi4D.dproj' project file in Delphi
 - Select the 'Release' build configuration
-- Right-click the 'ViDelphi_Rio.bpl' entry in the project view
+- Right-click the 'Vi4D.bpl' entry in the project view
 - Click on 'Install'
-
-### The harder way with DLL and RegEdit
-
-- Open the 'ViDelphiDll_Rio.dproj' project file in Delphi
-- Right-click the 'ViDelphiDll_Rio.dll' entry in the project view
-- Click on 'Build'
-- Open RegEdit
-- Navigate to the key 'HKEY_CURRENT_USER\Software\Embarcadero\BDS\20.0\Experts'
-- Create a new String Value in 'Experts'
-  - Name: Choose anything (e.g. ViDelphiDll)
-  - Value: Path to the DLL file you just built (e.g. C:\\Projects\\ViDelphiDll_Rio.dll)
-
-After you performed these steps, the cursor should change from ▏to ▃ , indicating the Vi Normal Mode.
 
 ## Debugging
 
-It turns out that there isn't much information about debugging Delphi Packages. However, I was able to debug the program by using the DLL method:
-
-- Open the 'ViDelphiDll_Rio.dproj' project file in Delphi
-- Right-click the 'ViDelphiDll_Rio.dll' entry in the project view
-- Click on 'Options'
-- Go to 'Debugger' and select the Debug configuration
-- Set the host application to '$(BDS)\bin\bds.exe'
-- Add a new parameter: "-rYOURKEYNAME" (replace YOURKEYNAME as you wish, e.g. DllDebug)
-- Open RegEdit
-- Navigate to the key 'HKEY_CURRENT_USER\\Software\\Embarcadero'
-- **Create a new key** called YOURKEYNAME (the one you used for the parameter)
-- Add these additional subkeys: '\\20.0\\Experts\\' (replace the version number if needed)
-- You should now have the key 'HKEY_CURRENT_USER\\Software\\Embarcadero\\YOURKEYNAME\\20.0\\Experts'
-- Create a new String Value in 'Experts':
-  - Name: Choose anything (e.g. ViDelphiDll)
-  - Value: Path to the debugged DLL file (e.g. C:\\Projects\\Debug\\ViDelphiDll_Rio.dll)
-
-You should now be able to debug the program. Don't forget to switch to the Debug Build Configuration.
+Ensure the `Host application` under `Project Options` is set to your `bds.exe` path and run the bpl in debug mode.
 
 ## Roadmap
 
-[See Wiki Page](https://github.com/Tanikai/vi-delphi/wiki/Roadmap)
+Coming soon
+
+## Known issues / Differences with Neovim
+
+A lot of this are notes I have taken during the initial refactor/rewrite, I will clean them up at some point as I address them.
+
+- Selected text will not trigger any special behavior (so selecting text and pressing x or d will not delete the selection)
+- Undoing operations that are more than one smaller operations require undoing each smaller operation
+- `r` does not go back to Normal mode after entering the replacement character
+- `S` does not support number.modifier
+- `/` is not implemented yet
+- `d` on multiple (and maybe one) lines and then pasting has issues with indents being added to each line
+- cutting multiple lines and pasting them will insert it where the cursor is, should EOL and ensure a new line
+- No `V` or `v` or `<C-V>`
+- No inner/around yet
+- TextObjects and Navigation are (so far) the same, Navigation has an .Execute a bit more complete, review after inner/around to see if it is still true
+- `dw` does not work when on a white space, it should delete the whitespace
+- add a centralized Move in Nav to validate input
+- Marks support
+- Clipboard only supports one entry
+- Using `Fx` and `Tx` when the cursor is past EoL causes the cursor to move to the wrong place
+- I Would LOVE to implement relative line numbers... not sure if it is possible though
+
+(Wont Fix)
+
+- `L` goes to last -1 line, due to IDE auto-scrolling if we to to the last line
 
 ## License
 
 This project is licensed under GPLv3 (see LICENSE).
-
 The original codebase is licensed under MIT (see vide-LICENSE).

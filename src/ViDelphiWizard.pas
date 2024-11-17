@@ -1,8 +1,9 @@
 {
-  This file registers the ViDelphi Wizard in the Delphi IDE.
+  This file registers the Vi4D Wizard in the Delphi IDE.
 
-  Copyright (c) 2016 Peter Ross
-  Copyright (C) 2021  Kai Anter
+  Copyright (C) 2016 Peter Ross
+  Copyright (C) 2021 Kai Anter
+  Copyright (C) 2024 Antoine G Simard
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -25,27 +26,23 @@ interface
 uses
   ViEngine,
   Classes,
-  System.SysUtils,
+  SysUtils,
   ToolsAPI,
-  Vcl.AppEvnts,
-  Vcl.ActnList,
-  Vcl.ComCtrls,
-  Vcl.Controls,
-  Vcl.Forms,
-  Winapi.Windows,
-  Winapi.Messages;
+  AppEvnts,
+  ActnList,
+  ComCtrls,
+  Controls,
+  Forms,
+  Windows,
+  Messages;
 
 type
-
-  TVIDEWizard = class(TNotifierObject, IOTAWizard)
+  TVi4DWizard = class(TNotifierObject, IOTAWizard)
   private
     FEvents: TApplicationEvents;
-    FViBindings: TViEngine;
+    FViEngine: TViEngine;
     FAction: TAction;
     procedure DoApplicationMessage(var Msg: TMsg; var Handled: Boolean);
-  protected
-    procedure EditKeyDown(Key, ScanCode: Word; Shift: TShiftState; Msg: TMsg; var Handled: Boolean);
-    procedure EditChar(Key, ScanCode: Word; Shift: TShiftState; Msg: TMsg; var Handled: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -71,15 +68,15 @@ exports InitWizard Name WizardEntryPoint;
 
 implementation
 
-uses Vcl.Dialogs;
+uses Dialogs;
 
 Var
   iWizard: Integer = 0;
 
-Function InitialiseWizard(BIDES: IBorlandIDEServices): TVIDEWizard;
+Function InitialiseWizard(BIDES: IBorlandIDEServices): TVi4DWizard;
 
 Begin
-  Result := TVIDEWizard.Create;
+  Result := TVi4DWizard.Create;
   Application.Handle := (BIDES As IOTAServices).GetParentHandle;
 End;
 
@@ -94,7 +91,7 @@ End;
 procedure Register;
 begin
 {$IFDEF CODESITE}CodeSite.TraceMethod('Register', tmoTiming); {$ENDIF}
-  RegisterPackageWizard(TVIDEWizard.Create);
+  RegisterPackageWizard(TVi4DWizard.Create);
 end;
 
 function IsEditControl(AControl: TComponent): Boolean;
@@ -103,45 +100,45 @@ begin
 end;
 
 // http://docwiki.embarcadero.com/RADStudio/Sydney/en/Adding_an_Action_to_the_Action_List
-procedure TVIDEWizard.AddAction;
+procedure TVi4DWizard.AddAction;
 var
   LService: INTAServices;
 begin
   if Supports(BorlandIDEServices, INTAServices, LService) then
   begin
     FAction := TAction.Create(nil);
-    FAction.Name := 'ViDelphi';
-    FAction.Caption := 'ViDelphi';
+    FAction.Name := 'Vi4D';
+    FAction.Caption := 'Vi4D';
     FAction.Category := 'Tools';
     FAction.OnExecute := OnActionClick;
     LService.AddActionMenu('', FAction, nil);
   end;
 end;
 
-procedure TVIDEWizard.BeforeDestruction;
+procedure TVi4DWizard.BeforeDestruction;
 begin
   inherited;
   FEvents.Free;
-  FViBindings.Free;
+  FViEngine.Free;
 end;
 
-constructor TVIDEWizard.Create;
+constructor TVi4DWizard.Create;
 begin
   AddAction;
   FEvents := TApplicationEvents.Create(nil);
   FEvents.OnMessage := DoApplicationMessage;
-  FViBindings := TViEngine.Create;
-  FViBindings.onModeChanged := SetActionCaption;
+  FViEngine := TViEngine.Create;
+  FViEngine.onModeChanged := SetActionCaption;
 end;
 
-destructor TVIDEWizard.Destroy;
+destructor TVi4DWizard.Destroy;
 begin
   RemoveActionFromAllToolbars;
   FreeAndNil(FAction);
   inherited;
 end;
 
-procedure TVIDEWizard.DoApplicationMessage(var Msg: TMsg; var Handled: Boolean);
+procedure TVi4DWizard.DoApplicationMessage(var Msg: TMsg; var Handled: Boolean);
 var
   Key: Word;
   ScanCode: Word;
@@ -155,55 +152,47 @@ begin
     Shift := KeyDataToShiftState(Msg.lParam);
 
     if Msg.message = WM_CHAR then
-      EditChar(Key, ScanCode, Shift, Msg, Handled)
+      FViEngine.EditChar(Key, ScanCode, Shift, Msg, Handled)
     else
     begin
       if Key = VK_PROCESSKEY then
         Key := MapVirtualKey(ScanCode, 1);
 
       if Msg.message = WM_KEYDOWN then
-        EditKeyDown(Key, ScanCode, Shift, Msg, Handled);
+        FViEngine.EditKeyDown(Key, ScanCode, Shift, Msg, Handled);
     end;
-  end;
+  end
+  else if (Msg.message = WM_LBUTTONDOWN) then
+    FViEngine.LButtonDown;
 end;
 
-procedure TVIDEWizard.EditChar(Key, ScanCode: Word; Shift: TShiftState; Msg: TMsg; var Handled: Boolean);
+procedure TVi4DWizard.Execute;
 begin
-  FViBindings.EditChar(Key, ScanCode, Shift, Msg, Handled);
+  FViEngine.ConfigureCursor;
 end;
 
-procedure TVIDEWizard.EditKeyDown(Key, ScanCode: Word; Shift: TShiftState; Msg: TMsg; var Handled: Boolean);
+function TVi4DWizard.GetIDString: string;
 begin
-  FViBindings.EditKeyDown(Key, ScanCode, Shift, Msg, Handled);
+  Result := 'Vi4D.Vi4DWizard';
 end;
 
-procedure TVIDEWizard.Execute;
+function TVi4DWizard.GetName: string;
 begin
-  FViBindings.ConfigureCursor;
+  Result := 'Vi4D Wizard';
 end;
 
-function TVIDEWizard.GetIDString: string;
-begin
-  Result := 'VIDE.VIDEWizard';
-end;
-
-function TVIDEWizard.GetName: string;
-begin
-  Result := 'VIDE Wizard';
-end;
-
-function TVIDEWizard.GetState: TWizardState;
+function TVi4DWizard.GetState: TWizardState;
 begin
   Result := [wsEnabled];
 end;
 
-procedure TVIDEWizard.OnActionClick(Sender: TObject);
+procedure TVi4DWizard.OnActionClick(Sender: TObject);
 begin
-  FViBindings.ToggleActive;
+  FViEngine.ToggleActive;
 end;
 
 // http://docwiki.embarcadero.com/RADStudio/Sydney/en/Deleting_Toolbar_Buttons
-procedure TVIDEWizard.RemoveActionFromAllToolbars;
+procedure TVi4DWizard.RemoveActionFromAllToolbars;
 var
   LService: INTAServices;
 begin
@@ -217,7 +206,7 @@ begin
   end;
 end;
 
-procedure TVIDEWizard.RemoveActionFromToolbar(AAction: TAction; AToolbar: TToolbar);
+procedure TVi4DWizard.RemoveActionFromToolbar(AAction: TAction; AToolbar: TToolbar);
 var
   i: Integer;
   LButton: TToolButton;
@@ -233,7 +222,7 @@ begin
   end;
 end;
 
-procedure TVIDEWizard.SetActionCaption(ACaption: String);
+procedure TVi4DWizard.SetActionCaption(ACaption: String);
 begin
   FAction.Caption := ACaption;
 end;
