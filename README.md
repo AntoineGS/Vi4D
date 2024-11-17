@@ -13,6 +13,15 @@ Thank you to both of those projects for the ideas and foundations. :)
 - Right-click the 'Vi4D.bpl' entry in the project view
 - Click on 'Install'
 
+### IDE Action
+
+It is highly recommended to add the included command to a toolbar so that you can activate/deactivate the plugin, as well as see what more you are in.
+
+- Right-click on your IDE toolbar and click `customize`
+- Go to the `Commands` tab
+- In the `Tools` category, local the new `Command`
+- Drag and drop it on an existing toolbar, and voila!
+
 ## Debugging
 
 Ensure the `Host application` under `Project Options` is set to your `bds.exe` path and run the bpl in debug mode.
