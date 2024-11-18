@@ -129,7 +129,6 @@ var
   end;
 
 begin
-//  SavePreviousAction;
   LPastingInSelection := False;
   aBuffer := GetEditBuffer;
   LAutoIndent := ABuffer.BufferOptions.AutoIndent;
