@@ -14,6 +14,8 @@ uses
   Clipboard;
 
 type
+  TCommandChangedProc = reference to procedure(aCommand: String);
+
   TViOperation = class
   private
     FCommandToMatch: string; // to allow multi-character actions like gg, gU, etc.
@@ -25,6 +27,9 @@ type
     FCountSet: boolean;
     FCommand: string;
     FLastCommand: string;
+    FCommandChangedProc: TCommandChangedProc;
+    procedure SetOnCommandChanged(aProc: TCommandChangedProc);
+    procedure SetCommand(aCommand: string);
   public
     constructor Create(aViEngine: IViEngine; aClipboard: TClipboard);
     destructor Destroy; override;
@@ -33,15 +38,16 @@ type
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViNavigationCClass: TViNavigationCClass;
         searchToken: string = ''); overload;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViEditCClass: TViEditCClass); overload;
+
     procedure AddToCommandToMatch(const aString: string);
     procedure ClearCommandToMatch;
     procedure Reset(saveLastOperation: boolean);
     procedure AddToCount(aValue: Integer);
-    procedure ExecuteLastOperation(aCursorPosition: IOTAEditPosition);
     function TryAddToCount(const aString: string): boolean;
     function Count(default: integer = 1): integer;
     property CommandToMatch: string read FCommandToMatch;
     property LastCommand: string read FLastCommand;
+    property onCommandChanged: TCommandChangedProc write SetOnCommandChanged;
   end;
 
 implementation
@@ -68,7 +74,7 @@ end;
 procedure TViOperation.AddToCommandToMatch(const aString: string);
 begin
   FCommandToMatch := FCommandToMatch + aString;
-  FCommand := FCommand + aString;
+  SetCommand(FCommand + aString);
 end;
 
 procedure TViOperation.AddToCount(aValue: Integer);
@@ -113,16 +119,12 @@ begin
   Reset(false);
 end;
 
-// There is surely a better way to do this
-procedure TViOperation.ExecuteLastOperation(aCursorPosition: IOTAEditPosition);
+procedure TViOperation.SetCommand(aCommand: string);
 begin
-//  if FLastOperation.FMotion <> nil then
-//  begin
-//    if FLastOperation.FMotion.InheritsFrom(TViTextObjectC) then
-//      FLastOperation.SetAndExecuteIfComplete(aCursorPosition, (FLastOperation.FMotion.ClassType as TViTextObjectCClass))
-//  end
-//  else if FLastOperation.FOperator <> nil then
-//    FLastOperation.SetAndExecuteIfComplete(aCursorPosition, FLastOperation.FOperator);
+  FCommand := aCommand;
+
+  if Assigned(FCommandChangedProc) then
+    FCommandChangedProc(aCommand);
 end;
 
 procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViOperatorCClass: TViOperatorCClass);
@@ -231,15 +233,19 @@ begin
   Reset(false);
 end;
 
+procedure TViOperation.SetOnCommandChanged(aProc: TCommandChangedProc);
+begin
+  FCommandChangedProc := aProc;
+end;
+
 procedure TViOperation.Reset(saveLastOperation: boolean);
 begin
-  // prevent infinite loop
   if saveLastOperation and (FCommand <> '.') and (FCommand <> '') then
     FLastCommand := FCommand;
 
   FreeAndNil(FOperator);
   FreeAndNil(FMotion);
-  FCommand := '';
+  SetCommand('');
   FCommandToMatch := '';
   FCount := 1;
   FCountSet := False;

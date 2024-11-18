@@ -42,7 +42,11 @@ type
     FEvents: TApplicationEvents;
     FViEngine: TViEngine;
     FAction: TAction;
+    FButtonRef: TToolButton;
     procedure DoApplicationMessage(var Msg: TMsg; var Handled: Boolean);
+    procedure AddToolButton;
+    procedure OnCustomDrawButton(Sender: TToolBar; Button: TToolButton; State: TCustomDrawState;
+      var DefaultDraw: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -68,7 +72,10 @@ exports InitWizard Name WizardEntryPoint;
 
 implementation
 
-uses Dialogs;
+uses
+  Dialogs,
+  Graphics,
+  Commands.Base; //todo: move this to a interface unit
 
 Var
   iWizard: Integer = 0;
@@ -99,6 +106,74 @@ begin
   Result := (AControl <> nil) and AControl.ClassNameIs('TEditControl') and SameText(AControl.Name, 'Editor');
 end;
 
+function WebColorStrToColor(WebColor: string): TColor;
+begin
+  if (Length(WebColor) <> 7) or (WebColor[1] <> '#') then
+    Raise Exception.Create('Invalid web color string');
+
+  Result :=
+    RGB(
+      StrToInt('$' + Copy(WebColor, 2, 2)),
+      StrToInt('$' + Copy(WebColor, 4, 2)),
+      StrToInt('$' + Copy(WebColor, 6, 2)));
+end;
+
+procedure TVi4DWizard.OnCustomDrawButton(Sender: TToolBar; Button: TToolButton; State: TCustomDrawState; var DefaultDraw: Boolean);
+var
+  aColor: TColor;
+begin
+  if not (Button = FButtonRef) then
+  begin
+    DefaultDraw := True;
+    Exit;
+  end;
+
+  aColor := clNone;
+
+  // todo make this configurable somehow
+  case FViEngine.currentViMode of
+    mNormal: aColor := WebColorStrToColor('#61afef');
+    mInsert: aColor := WebColorStrToColor('#c678dd');
+    mVisual: aColor := WebColorStrToColor('#d19a66');
+  end;
+
+  if aColor = clNone then
+    Exit;
+
+  Sender.Canvas.Brush.Color := aColor;
+  Sender.Canvas.Rectangle(Button.BoundsRect);
+  Sender.Canvas.FrameRect(Button.BoundsRect);
+//  Sender.Canvas.Font.Style := [fsBold]; // I would like bolding but then the button does not draw wider so it breaks
+end;
+
+procedure TVi4DWizard.AddToolButton;
+var
+  LService: INTAServices;
+  lastbtnidx: integer;
+  aToolBar: TToolBar;
+begin
+  if Supports(BorlandIDEServices, INTAServices, LService) then
+  begin
+    aToolBar := LService.ToolBar[sCustomToolBar];
+    aToolBar.OnCustomDrawButton := OnCustomDrawButton;
+    FButtonRef := TToolButton.Create(aToolBar);
+    FButtonRef.AutoSize := True;
+    FButtonRef.Name := 'Vi4DBtn';
+    FButtonRef.Action := FAction;
+    FButtonRef.Hint := 'Vi4D Status bar, click to Disable Vi4D';
+    FButtonRef.ShowHint := True;
+    FButtonRef.Style := tbsTextButton;
+    lastbtnidx := aToolBar.ButtonCount - 1;
+
+    if lastbtnidx > -1 then
+      FButtonRef.Left := aToolBar.Buttons[lastbtnidx].Left + aToolBar.Buttons[lastbtnidx].Width
+    else
+      FButtonRef.Left := 0;
+
+    FButtonRef.Parent := aToolBar;
+  end;
+end;
+
 // http://docwiki.embarcadero.com/RADStudio/Sydney/en/Adding_an_Action_to_the_Action_List
 procedure TVi4DWizard.AddAction;
 var
@@ -113,6 +188,8 @@ begin
     FAction.OnExecute := OnActionClick;
     LService.AddActionMenu('', FAction, nil);
   end;
+
+  AddToolButton;
 end;
 
 procedure TVi4DWizard.BeforeDestruction;
@@ -128,7 +205,7 @@ begin
   FEvents := TApplicationEvents.Create(nil);
   FEvents.OnMessage := DoApplicationMessage;
   FViEngine := TViEngine.Create;
-  FViEngine.onModeChanged := SetActionCaption;
+  FViEngine.onCaptionChanged := SetActionCaption;
 end;
 
 destructor TVi4DWizard.Destroy;
@@ -203,6 +280,7 @@ begin
     RemoveActionFromToolbar(FAction, LService.ToolBar[sStandardToolBar]);
     RemoveActionFromToolbar(FAction, LService.ToolBar[sDebugToolBar]);
     RemoveActionFromToolbar(FAction, LService.ToolBar[sViewToolBar]);
+    RemoveActionFromToolbar(FAction, LService.ToolBar[sBrowserToolbar]);
   end;
 end;
 
@@ -214,7 +292,7 @@ begin
   for i := AToolbar.ButtonCount - 1 downto 0 do
   begin
     LButton := AToolbar.Buttons[i];
-    if LButton.Action = FAction then
+    if (LButton.Action = FAction) or (LButton.Name = 'Vi4DBtn') then
     begin
       AToolbar.Perform(CM_CONTROLCHANGE, wParam(LButton), 0);
       FreeAndNil(LButton);
@@ -225,6 +303,8 @@ end;
 procedure TVi4DWizard.SetActionCaption(ACaption: String);
 begin
   FAction.Caption := ACaption;
+//  RemoveActionFromAllToolbars;
+//  FButtonRef.Caption := ACaption;
 end;
 
 end.

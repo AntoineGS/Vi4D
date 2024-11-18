@@ -34,22 +34,26 @@ uses
   Commands.TextObjects,
   Commands.Editing,
   ViOperation,
-  Clipboard;
+  Clipboard,
+  AppEvnts;
 
 type
-  TP_ModeChanged = reference to procedure(AMode: String);
+  TCaptionChangeProc = reference to procedure(aCaption: String);
 
   TViEngine = class(TSingletonImplementation, IViEngine)
   private
     FCurrentViMode: TViMode;
+    FCurrentCommandForCaption: string;
     FShiftState: TShiftState;
     FCurrentOperation: TViOperation;
-    FOnModeChanged: TP_ModeChanged; // called when Vi Mode is changed
+    FOnCaptionChanged: TCaptionChangeProc; // called when Vi Mode is changed
     FViOperatorBindings: TDictionary<string, TViOperatorCClass>;
     FViTextObjectBindings: TDictionary<string, TViTextObjectCClass>;
     FViNavigationBindings: TDictionary<string, TViNavigationCClass>;
     FViEditBindings: TDictionary<string, TViEditCClass>;
     FClipboard: TClipboard;
+    FUpdateActionCaption: boolean;
+    FEvents: TApplicationEvents;
     //FMarkArray: array [0 .. 255] of TOTAEditPos;
 
     procedure FillViBindings;
@@ -57,10 +61,12 @@ type
     procedure ResetCurrentOperation;
     procedure ExecuteLastCommand;
     procedure SetViMode(ANewMode: TViMode);
-    procedure SetOnModeChanged(ANewProc: TP_ModeChanged);
+    procedure SetOnCaptionChanged(ANewProc: TCaptionChangeProc);
+    procedure OnCommandChanged(aCommand: string);
+    procedure DoApplicationIdle(Sender: TObject; var Done: Boolean);
   public
     property currentViMode: TViMode read FCurrentViMode write SetViMode;
-    property onModeChanged: TP_ModeChanged read FOnModeChanged write SetOnModeChanged;
+    property onCaptionChanged: TCaptionChangeProc write SetOnCaptionChanged;
 
     constructor Create;
     destructor Destroy; override;
@@ -69,7 +75,6 @@ type
     procedure LButtonDown;
     procedure ConfigureCursor;
     procedure ToggleActive;
-
   end;
 
 implementation
@@ -79,9 +84,10 @@ uses
   SysUtils,
   ToolsAPI;
 
-function GetViModeString(aViMode: TViMode): string;
+function GetViModeString(aViMode: TViMode; aCommand: string): string;
 var
   mode: string;
+  command: string;
 begin
   case aViMode of
     mInactive: mode := 'INACTIVE';
@@ -89,11 +95,18 @@ begin
     mInsert: mode := 'INSERT';
     mVisual: mode := 'VISUAL';
   end;
+  command := aCommand;
+  result := Format('   %s', [mode]);
 
-  result := Format('Vi: -- %s --', [mode]);
+  if command <> '' then
+    result := Format('%s - %s', [result, command]);
 end;
 
-{ TViBindings }
+procedure TViEngine.OnCommandChanged(aCommand: string);
+begin
+  FCurrentCommandForCaption := aCommand;
+  FUpdateActionCaption := True;
+end;
 
 constructor TViEngine.Create;
 begin
@@ -104,11 +117,15 @@ begin
   FViEditBindings := TDictionary<string, TViEditCClass>.Create;
   FClipboard := TClipboard.Create;
   FCurrentOperation := TViOperation.Create(self, FClipboard);
+  FCurrentOperation.onCommandChanged := OnCommandChanged;
+  FEvents := TApplicationEvents.Create(nil);
+  FEvents.OnIdle := DoApplicationIdle;
   FillViBindings;
 end;
 
 destructor TViEngine.Destroy;
 begin
+  FEvents.Free;
   FCurrentOperation.Free;
   FClipboard.Free;
   FViEditBindings.Free;
@@ -210,6 +227,15 @@ begin
   FCurrentOperation.Reset(false);
 end;
 
+procedure TViEngine.DoApplicationIdle(Sender: TObject; var Done: Boolean);
+begin
+  if FUpdateActionCaption then
+  begin
+    FUpdateActionCaption := False;
+    SetViMode(FCurrentViMode);
+  end;
+end;
+
 procedure TViEngine.HandleChar(const AChar: Char);
 var
   aViOperatorCClass: TViOperatorCClass;
@@ -229,12 +255,8 @@ begin
   keepChar := False;
   aCursorPosition := GetEditPosition(aBuffer);
 
-  // we need to somehow match f+ (could replace char by + before lookup,
-  // would need to know that anything following an f should be replaced, where would knowledge come from?
-  // decorator on the class? Implementing an interface for it? Though at this point we do not know the class
-  // as the below is the class lookup, hmm
   if FCurrentOperation.TryAddToCount(commandToMatch) then
-    //
+    // we dont act on this, we just store if as a modifier for other commands
   else if FViOperatorBindings.TryGetValue(commandToMatch, aViOperatorCClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViOperatorCClass)
   else if FViTextObjectBindings.TryGetValue(commandToMatch, aViTextObjectCClass) then
@@ -343,6 +365,7 @@ begin
   FViEditBindings.Add('r', TViECReplaceChar);
   FViEditBindings.Add('R', TViECReplaceMode);
   FViEditBindings.Add('u', TViECUndo);
+  FViEditBindings.Add('U', TViECRedo);
 //  FViEditBindings.Add('<C-R>', TViECDeleteCharacter);
   FViEditBindings.Add('x', TViECDeleteCharacter);
   FViEditBindings.Add('X', TViECDeletePreviousCharacter);
@@ -351,6 +374,10 @@ begin
   FViEditBindings.Add('J', TViECJoinLines);
   FViEditBindings.Add('.', TViECRepeatLastCommand);
   FViEditBindings.Add('~', TViECToggleCase);
+
+  // todo: move these outside and require the ENTER key to run, so I can add modifiers like '!'
+  FViEditBindings.Add(':w', TViECSaveFile);
+  FViEditBindings.Add(':q', TViECCloseFile);
 
 //To Migrate
 //  FViKeybinds.Add('m', ActionSetMark);  // takes in the mark char
@@ -363,17 +390,17 @@ var
 begin
   FCurrentViMode := ANewMode;
   ConfigureCursor;
-  if assigned(FOnModeChanged) then
+  if assigned(FOnCaptionChanged) then
   begin
-    LText := GetViModeString(ANewMode);
-    FOnModeChanged(LText);
+    LText := GetViModeString(ANewMode, FCurrentCommandForCaption);
+    FOnCaptionChanged(LText);
   end;
 end;
 
-procedure TViEngine.SetOnModeChanged(ANewProc: TP_ModeChanged);
+procedure TViEngine.SetOnCaptionChanged(ANewProc: TCaptionChangeProc);
 begin
-  FOnModeChanged := ANewProc;
-  FOnModeChanged(GetViModeString(currentViMode)); // call new procedure immediately
+  FOnCaptionChanged := ANewProc;
+  FOnCaptionChanged(GetViModeString(currentViMode, FCurrentCommandForCaption)); // call new procedure immediately
 end;
 
 procedure TViEngine.ToggleActive;
