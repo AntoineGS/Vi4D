@@ -269,7 +269,7 @@ begin
     end;
 
     lPos := GetPositionForMove(aCursorPosition, aNormalMotion, true, aCount, fullLines);
-    ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, false, lPos);
+    ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, fullLines, lPos);
   end;
 end;
 

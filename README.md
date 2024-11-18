@@ -25,6 +25,7 @@ It is highly recommended to add the included command to a toolbar so that you ca
 ## Debugging
 
 Ensure the `Host application` under `Project Options` is set to your `bds.exe` path and run the bpl in debug mode.
+Note: This does not seem to work in recent versionof Delphi, it works great in D2010 though.
 
 ## Roadmap
 
@@ -39,8 +40,6 @@ A lot of this are notes I have taken during the initial refactor/rewrite, I will
 - `r` does not go back to Normal mode after entering the replacement character
 - `S` does not support number.modifier
 - `/` is not implemented yet
-- `d` on multiple (and maybe one) lines and then pasting has issues with indents being added to each line
-- cutting multiple lines and pasting them will insert it where the cursor is, should EOL and ensure a new line
 - No `V` or `v` or `<C-V>`
 - No inner/around yet
 - TextObjects and Navigation are (so far) the same, Navigation has an .Execute a bit more complete, review after inner/around to see if it is still true
