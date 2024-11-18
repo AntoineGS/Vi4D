@@ -42,7 +42,7 @@ type
     FEvents: TApplicationEvents;
     FViEngine: TViEngine;
     FAction: TAction;
-    FButtonRef: TToolButton;
+    FButton: TToolButton;
     procedure DoApplicationMessage(var Msg: TMsg; var Handled: Boolean);
     procedure AddToolButton;
     procedure OnCustomDrawButton(Sender: TToolBar; Button: TToolButton; State: TCustomDrawState;
@@ -81,7 +81,6 @@ Var
   iWizard: Integer = 0;
 
 Function InitialiseWizard(BIDES: IBorlandIDEServices): TVi4DWizard;
-
 Begin
   Result := TVi4DWizard.Create;
   Application.Handle := (BIDES As IOTAServices).GetParentHandle;
@@ -89,7 +88,6 @@ End;
 
 Function InitWizard(Const BorlandIDEServices: IBorlandIDEServices; RegisterProc: TWizardRegisterProc;
   var Terminate: TWizardTerminateProc): Boolean; StdCall;
-
 Begin
   Result := BorlandIDEServices <> Nil;
   RegisterProc(InitialiseWizard(BorlandIDEServices));
@@ -122,7 +120,7 @@ procedure TVi4DWizard.OnCustomDrawButton(Sender: TToolBar; Button: TToolButton; 
 var
   aColor: TColor;
 begin
-  if not (Button = FButtonRef) then
+  if not (Button = FButton) then
   begin
     DefaultDraw := True;
     Exit;
@@ -152,25 +150,28 @@ var
   lastbtnidx: integer;
   aToolBar: TToolBar;
 begin
+  if FButton <> nil then
+    Exit;
+
   if Supports(BorlandIDEServices, INTAServices, LService) then
   begin
     aToolBar := LService.ToolBar[sCustomToolBar];
     aToolBar.OnCustomDrawButton := OnCustomDrawButton;
-    FButtonRef := TToolButton.Create(aToolBar);
-    FButtonRef.AutoSize := True;
-    FButtonRef.Name := 'Vi4DBtn';
-    FButtonRef.Action := FAction;
-    FButtonRef.Hint := 'Vi4D Status bar, click to Disable Vi4D';
-    FButtonRef.ShowHint := True;
-    FButtonRef.Style := tbsTextButton;
+    FButton := TToolButton.Create(nil);
+    FButton.AutoSize := True;
+    FButton.Name := 'Vi4DBtn';
+    FButton.Action := FAction;
+    FButton.Hint := 'Vi4D Status bar, click to Disable Vi4D';
+    FButton.ShowHint := True;
+    FButton.Style := tbsTextButton;
     lastbtnidx := aToolBar.ButtonCount - 1;
 
     if lastbtnidx > -1 then
-      FButtonRef.Left := aToolBar.Buttons[lastbtnidx].Left + aToolBar.Buttons[lastbtnidx].Width
+      FButton.Left := aToolBar.Buttons[lastbtnidx].Left + aToolBar.Buttons[lastbtnidx].Width
     else
-      FButtonRef.Left := 0;
+      FButton.Left := 0;
 
-    FButtonRef.Parent := aToolBar;
+    FButton.Parent := aToolBar;
   end;
 end;
 
@@ -188,8 +189,6 @@ begin
     FAction.OnExecute := OnActionClick;
     LService.AddActionMenu('', FAction, nil);
   end;
-
-  AddToolButton;
 end;
 
 procedure TVi4DWizard.BeforeDestruction;
@@ -241,6 +240,10 @@ begin
   end
   else if (Msg.message = WM_LBUTTONDOWN) then
     FViEngine.LButtonDown;
+
+  // Has to happen after UI is displayed
+  if FButton = nil then
+    AddToolButton;
 end;
 
 procedure TVi4DWizard.Execute;
@@ -292,7 +295,7 @@ begin
   for i := AToolbar.ButtonCount - 1 downto 0 do
   begin
     LButton := AToolbar.Buttons[i];
-    if (LButton.Action = FAction) or (LButton.Name = 'Vi4DBtn') then
+    if (LButton.Action = FAction) or (LButton.Name = 'Vi4DBtn') or (LButton = FButton) then
     begin
       AToolbar.Perform(CM_CONTROLCHANGE, wParam(LButton), 0);
       FreeAndNil(LButton);
@@ -303,8 +306,6 @@ end;
 procedure TVi4DWizard.SetActionCaption(ACaption: String);
 begin
   FAction.Caption := ACaption;
-//  RemoveActionFromAllToolbars;
-//  FButtonRef.Caption := ACaption;
 end;
 
 end.
