@@ -67,6 +67,10 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
+  TViECRedo = class(TViEditC)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
   TViECDeleteCharacter = class(TViEditC)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
@@ -92,6 +96,14 @@ type
   end;
 
   TViECToggleCase = class(TViEditC)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
+  TViECSaveFile = class(TViEditC)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
+  TViECCloseFile = class(TViEditC)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
@@ -420,6 +432,47 @@ begin
   LSelection.Extend(aCursorPosition.Row, aCursorPosition.Column + aCount);
   LSelection.ToggleCase;
   LSelection.EndBlock;
+end;
+
+{ TViECSaveFile }
+
+procedure TViECSaveFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  aBuffer: IOTAEditBuffer;
+begin
+  inherited;
+  aBuffer := GetEditBuffer;
+
+  if aBuffer.IsModified then
+    aBuffer.Module.Save(False, True);
+end;
+
+{ TViECCloseFile }
+
+procedure TViECCloseFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  aBuffer: IOTAEditBuffer;
+begin
+  inherited;
+  aBuffer := GetEditBuffer;
+
+//  todo: add modifiers to :X commands too, ie :q! before activating the below, for now itll prompt if not saved
+//  if aBuffer.IsModified then
+//    raise Exception.Create('File has pending changes, use :w to save changes');
+
+  aBuffer.Module.CloseModule(False);
+end;
+
+{ TViECRedo }
+
+procedure TViECRedo.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  aBuffer: IOTAEditBuffer;
+begin
+  inherited;
+  { TODO : Jump to position that is redone }
+  aBuffer := GetEditBuffer;
+  aBuffer.Redo;
 end;
 
 end.
