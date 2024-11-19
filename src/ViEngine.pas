@@ -315,7 +315,7 @@ begin
   FViTextObjectBindings.Add('B', TViTOCWordCharacterBack);
   FViTextObjectBindings.Add('e', TViTOCEndOfWord);
   FViTextObjectBindings.Add('E', TViTOCEndOfWordCharacter);
-  FViTextObjectBindings.Add('i+', TViOCInner);
+  FViTextObjectBindings.Add('i+', TViOCInside);
   FViTextObjectBindings.Add('a+', TViOCAround);
 
 

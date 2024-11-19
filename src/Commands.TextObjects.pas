@@ -6,7 +6,7 @@ uses
   Commands.Base,
   Commands.Operators,
   Commands.Navigation,
-  Commands.TextObjects.InnerAround,
+  Commands.TextObjects.InsideAround,
   ToolsAPI,
   Clipboard,
   Generics.Collections;
@@ -47,12 +47,12 @@ type
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViOCInnerAround = class(TViTextObjectC, ISearchMotion, IEditionMotion)
+  TViOCInsideAround = class(TViTextObjectC, ISearchMotion, IEditionMotion)
   private
     FSearchToken: string;
   protected
     class var
-      FViIAKeyBindings: TDictionary<string, TInnerAroundCClass>;
+      FViIAKeyBindings: TDictionary<string, TInsideAroundCClass>;
     class procedure FillViBindings;
   public
     function GetSearchToken: string;
@@ -61,11 +61,11 @@ type
   end;
 
   // these will delegate the Move to their sub command
-  TViOCInner = class(TViOCInnerAround, IInnerAroundMotion)
+  TViOCInside = class(TViOCInsideAround, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TViOCAround = class(TViOCInnerAround, IInnerAroundMotion)
+  TViOCAround = class(TViOCInsideAround, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
@@ -106,7 +106,7 @@ procedure TViTextObjectC.Execute(aCursorPosition: IOTAEditPosition; aViOperatorC
 var
   lPos: TOTAEditPos;
   aNormalMotion: INavigationMotion;
-  aIAMotion: IInnerAroundMotion;
+  aIAMotion: IInsideAroundMotion;
   LSelection: IOTAEditBlock;
 begin
   if aCursorPosition = nil then
@@ -125,7 +125,7 @@ begin
       ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, false, lPos);
     end;
   end
-  else if Supports(self, IInnerAroundMotion, aIAMotion) then
+  else if Supports(self, IInsideAroundMotion, aIAMotion) then
   begin
     LSelection := aIAMotion.GetSelection(aCursorPosition);
     ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, true, LSelection);
@@ -241,34 +241,34 @@ begin
   end;
 end;
 
-{ TViOCInnerAround }
+{ TViOCInsideAround }
 
-function TViOCInnerAround.GetSearchToken: string;
+function TViOCInsideAround.GetSearchToken: string;
 begin
   result := FSearchToken;
 end;
 
-procedure TViOCInnerAround.SetSearchToken(const aValue: string);
+procedure TViOCInsideAround.SetSearchToken(const aValue: string);
 begin
   FSearchToken := aValue;
 end;
 
-{ TViOCInner }
+{ TViOCInside }
 
-function TViOCInner.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock; // these can AV if nothing is found, gotta fix that   dd
+function TViOCInside.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock; // these can AV if nothing is found, gotta fix that   dd
 var
-  aIACClass: TInnerAroundCClass;
-  aIAC: TInnerAroundC;
+  aIACClass: TInsideAroundCClass;
+  aIAC: TInsideAroundC;
   aBuffer: IOTAEditBuffer;
-  aIAMotion: IInnerAroundMotion;
+  aIAMotion: IInsideAroundMotion;
 begin
   aBuffer := GetEditBuffer;
 
   if FViIAKeyBindings.TryGetValue(FSearchToken, aIACClass) then
   begin
-    aIAC := aIACClass.Create(FClipboard, FViEngine, itInner);
+    aIAC := aIACClass.Create(FClipboard, FViEngine, itInside);
 
-    if Supports(aIAC, IInnerAroundMotion, aIAMotion) then
+    if Supports(aIAC, IInsideAroundMotion, aIAMotion) then
     begin
       result := aIAMotion.GetSelection(aCursorPosition);
       aBuffer.TopView.MoveViewToCursor;
@@ -281,10 +281,10 @@ end;
 // todo: some commands like `w` should keep one of the two spaces around the word, will need to add this in
 function TViOCAround.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 var
-  aIACClass: TInnerAroundCClass;
-  aIAC: TInnerAroundC;
+  aIACClass: TInsideAroundCClass;
+  aIAC: TInsideAroundC;
   aBuffer: IOTAEditBuffer;
-  aIAMotion: IInnerAroundMotion;
+  aIAMotion: IInsideAroundMotion;
 begin
   aBuffer := GetEditBuffer;
 
@@ -292,7 +292,7 @@ begin
   begin
     aIAC := aIACClass.Create(FClipboard, FViEngine, itAround);
 
-    if Supports(aIAC, IInnerAroundMotion, aIAMotion) then
+    if Supports(aIAC, IInsideAroundMotion, aIAMotion) then
     begin
       result := aIAMotion.GetSelection(aCursorPosition);
       aBuffer.TopView.MoveViewToCursor;
@@ -300,11 +300,11 @@ begin
   end;
 end;
 
-{ TViOCInnerAround }
+{ TViOCInsideAround }
 
-{ TViOCInnerAround }
+{ TViOCInsideAround }
 
-class procedure TViOCInnerAround.FillViBindings;
+class procedure TViOCInsideAround.FillViBindings;
 begin
   FViIAKeyBindings.Add('(', TIAParenthesis);
   FViIAKeyBindings.Add(')', TIAParenthesis);
@@ -327,10 +327,10 @@ begin
 end;
 
 initialization
-  TViOCInnerAround.FViIAKeyBindings := TDictionary<string, TInnerAroundCClass>.Create;
-  TViOCInnerAround.FillViBindings;
+  TViOCInsideAround.FViIAKeyBindings := TDictionary<string, TInsideAroundCClass>.Create;
+  TViOCInsideAround.FillViBindings;
 
 finalization
-  TViOCInnerAround.FViIAKeyBindings.Free;
+  TViOCInsideAround.FViIAKeyBindings.Free;
 
 end.

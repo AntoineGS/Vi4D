@@ -39,6 +39,6 @@ contains
   NavUtils in 'src\NavUtils.pas',
   Clipboard in 'src\Clipboard.pas',
   Commands.Editing in 'src\Commands.Editing.pas',
-  Commands.TextObjects.InnerAround in 'src\Commands.TextObjects.InnerAround.pas';
+  Commands.TextObjects.InsideAround in 'src\Commands.TextObjects.InsideAround.pas';
 
 end.

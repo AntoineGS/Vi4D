@@ -1,4 +1,4 @@
-unit Commands.TextObjects.InnerAround;
+unit Commands.TextObjects.InsideAround;
 
 interface
 
@@ -8,70 +8,70 @@ uses
   Clipboard;
 
 type
-  TInnerAroundType = (itInner, itAround);
+  TInsideAroundType = (itInside, itAround);
 
-  TInnerAroundC = class(TViCommand)
+  TInsideAroundC = class(TViCommand)
   protected
-    FIAType: TInnerAroundType;
-    function InnerGetSelection(aCursorPosition: IOTAEditPosition; const aOpenCharacter, aCloseCharacter: Char): IOTAEditBlock;
+    FIAType: TInsideAroundType;
+    function InsideGetSelection(aCursorPosition: IOTAEditPosition; const aOpenCharacter, aCloseCharacter: Char): IOTAEditBlock;
   public
-    constructor Create(aClipboard: TClipboard; viEngineToRemove: IViEngine; aIAType: TInnerAroundType); reintroduce; virtual;
+    constructor Create(aClipboard: TClipboard; viEngineToRemove: IViEngine; aIAType: TInsideAroundType); reintroduce; virtual;
   end;
 
-  TInnerAroundCClass = class of TInnerAroundC;
+  TInsideAroundCClass = class of TInsideAroundC;
 
-  IInnerAroundMotion = interface
+  IInsideAroundMotion = interface
   ['{134E4567-CB25-40F2-8067-8C83CBA6F55C}']
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
   // Clever enough to find the next pair if outside
-  TIAParenthesis = class(TInnerAroundC, IInnerAroundMotion)
+  TIAParenthesis = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TIASquareBracket = class(TInnerAroundC, IInnerAroundMotion)
+  TIASquareBracket = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TIABraces = class(TInnerAroundC, IInnerAroundMotion)
+  TIABraces = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TIAAngleBracket = class(TInnerAroundC, IInnerAroundMotion)
+  TIAAngleBracket = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
   // Has to be in between open and close chars
-  TIASingleQuote = class(TInnerAroundC, IInnerAroundMotion)
+  TIASingleQuote = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TIADoubleQuote = class(TInnerAroundC, IInnerAroundMotion)
+  TIADoubleQuote = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TIATick = class(TInnerAroundC, IInnerAroundMotion)
-    function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
-  end;
-
-  // use regular motion
-  TIAParagraph = class(TInnerAroundC, IInnerAroundMotion)
+  TIATick = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
   // use regular motion
-  TIAWord = class(TInnerAroundC, IInnerAroundMotion)
+  TIAParagraph = class(TInsideAroundC, IInsideAroundMotion)
+    function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
+  end;
+
+  // use regular motion
+  TIAWord = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
   // ?
-  TIABlocks = class(TInnerAroundC, IInnerAroundMotion)
+  TIABlocks = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
   // ?
-  TIATag = class(TInnerAroundC, IInnerAroundMotion)
+  TIATag = class(TInsideAroundC, IInsideAroundMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
@@ -84,15 +84,15 @@ uses
   StrUtils,
   Math;
 
-{ TInnerAroundC }
+{ TInsideAroundC }
 
-constructor TInnerAroundC.Create(aClipboard: TClipboard; viEngineToRemove: IViEngine; aIAType: TInnerAroundType);
+constructor TInsideAroundC.Create(aClipboard: TClipboard; viEngineToRemove: IViEngine; aIAType: TInsideAroundType);
 begin
   inherited Create(aClipboard, viEngineToRemove);
   FIAType := aIAType;
 end;
 
-function TInnerAroundC.InnerGetSelection(aCursorPosition: IOTAEditPosition; const aOpenCharacter,
+function TInsideAroundC.InsideGetSelection(aCursorPosition: IOTAEditPosition; const aOpenCharacter,
   aCloseCharacter: Char): IOTAEditBlock;
 var
   aBuffer: IOTAEditBuffer;
@@ -103,7 +103,7 @@ var
 begin
   try
   // todo: maybe a clear highlight would resolve the sticky characters
-    // todo: the following shows a flag in the logic with ( x() ), if at X, it will match the inner brackets instead of outer
+    // todo: the following shows a flag in the logic with ( x() ), if at X, it will match the Inside brackets instead of outer
     openEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     closeEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     aBuffer := GetEditBuffer;
@@ -120,7 +120,7 @@ begin
 //    if not aCursorPosition.SearchAgain then
 //      Exit(False);
 
-    // will vary if inner or outer, but needs to be added back only after the search is done
+    // will vary if Inside or outer, but needs to be added back only after the search is done
     aCursorPosition.MoveRelative(0, -1);
 
     // todo: handle character not found
@@ -161,28 +161,28 @@ end;
 // change name to TryGetSelection, so we can abort if no result
 function TIAParenthesis.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-  result := InnerGetSelection(aCursorPosition, '(', ')');
+  result := InsideGetSelection(aCursorPosition, '(', ')');
 end;
 
 { TIASquareBracket }
 
 function TIASquareBracket.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-  result := InnerGetSelection(aCursorPosition, '[', ']');
+  result := InsideGetSelection(aCursorPosition, '[', ']');
 end;
 
 { TIABraces }
 
 function TIABraces.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-  result := InnerGetSelection(aCursorPosition, '{', '}');
+  result := InsideGetSelection(aCursorPosition, '{', '}');
 end;
 
 { TIAAngleBracket }
 
 function TIAAngleBracket.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-  result := InnerGetSelection(aCursorPosition, '<', '>');
+  result := InsideGetSelection(aCursorPosition, '<', '>');
 end;
 
 { TIAParagraph }
@@ -196,21 +196,21 @@ end;
 
 function TIASingleQuote.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-  result := InnerGetSelection(aCursorPosition, '''', '''');
+  result := InsideGetSelection(aCursorPosition, '''', '''');
 end;
 
 { TIADoubleQuote }
 
 function TIADoubleQuote.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-  result := InnerGetSelection(aCursorPosition, '"', '"');
+  result := InsideGetSelection(aCursorPosition, '"', '"');
 end;
 
 { TIATick }
 
 function TIATick.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-  result := InnerGetSelection(aCursorPosition, '`', '`');
+  result := InsideGetSelection(aCursorPosition, '`', '`');
 end;
 
 { TIABlocks }
@@ -224,7 +224,7 @@ end;
 
 function TIATag.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 begin
-//  result := InnerGetSelection(aCursorPosition, '>', '<');
+//  result := InsideGetSelection(aCursorPosition, '>', '<');
 end;
 
 { TIAWord }

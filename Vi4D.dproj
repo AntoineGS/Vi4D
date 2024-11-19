@@ -72,7 +72,7 @@
 			<DCCReference Include="src\NavUtils.pas"/>
 			<DCCReference Include="src\Clipboard.pas"/>
 			<DCCReference Include="src\Commands.Editing.pas"/>
-			<DCCReference Include="src\Commands.TextObjects.InnerAround.pas"/>
+			<DCCReference Include="src\Commands.TextObjects.InsideAround.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
