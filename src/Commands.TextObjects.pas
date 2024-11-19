@@ -130,6 +130,12 @@ begin
     LSelection := aIAMotion.GetSelection(aCursorPosition);
     ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, true, LSelection);
   end;
+
+  if aCursorPosition.SearchOptions.SearchText <> '' then
+  begin
+    aCursorPosition.SearchOptions.SearchText := '';
+    aCursorPosition.SearchAgain;
+  end;
 end;
 
 { TViTOCWordBack }

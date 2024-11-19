@@ -306,6 +306,7 @@ begin
   FViOperatorBindings.Add('<', TViOCIndentLeft);
   FViOperatorBindings.Add('=', TViOCAutoIndent);
   FViOperatorBindings.Add('gU', TViOCUppercase);
+  // gUU for line, guu for line
   FViOperatorBindings.Add('gu', TViOCLowercase);
 
   // motions
@@ -317,7 +318,6 @@ begin
   FViTextObjectBindings.Add('E', TViTOCEndOfWordCharacter);
   FViTextObjectBindings.Add('i+', TViOCInside);
   FViTextObjectBindings.Add('a+', TViOCAround);
-
 
   // here '+' denotes that another character is needed to run/match the command
   FViNavigationBindings.add('h', TViNCLeft);

@@ -271,6 +271,12 @@ begin
     lPos := GetPositionForMove(aCursorPosition, aNormalMotion, true, aCount, fullLines);
     ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, fullLines, lPos);
   end;
+
+  if aCursorPosition.SearchOptions.SearchText <> '' then
+  begin
+    aCursorPosition.SearchOptions.SearchText := '';
+    aCursorPosition.SearchAgain;
+  end;
 end;
 
 { TViNCTrueEndOfLine }

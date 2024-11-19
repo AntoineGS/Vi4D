@@ -100,14 +100,18 @@ var
   toPos: TOTAEditPos;
   openEscapeChar,
   closeEscapeChar: String;
+  openBracketCount: integer;
+  firstCompleteSetEncountered: boolean;
+  firstOpenCharaterEncountered: boolean;
 begin
   try
-  // todo: maybe a clear highlight would resolve the sticky characters
-    // todo: the following shows a flag in the logic with ( x() ), if at X, it will match the Inside brackets instead of outer
+    // todo: maybe a clear highlight would resolve the sticky characters
     openEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     closeEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     aBuffer := GetEditBuffer;
 
+    aCursorPosition.Save;
+    // first we figure out if we are within a bracket, by looking for an unmatched backet before the cursor
     aCursorPosition.SearchOptions.SearchText :=
         Format('%s%s|%s%s', [openEscapeChar, aOpenCharacter, closeEscapeChar, aCloseCharacter]);
     aCursorPosition.SearchOptions.CaseSensitive := false;
@@ -116,33 +120,68 @@ begin
     aCursorPosition.SearchOptions.RegularExpression := True;
     aCursorPosition.SearchOptions.WholeFile := true;
     aCursorPosition.SearchOptions.WordBoundary := false;
-    aCursorPosition.SearchAgain;
-//    if not aCursorPosition.SearchAgain then
-//      Exit(False);
+    openBracketCount := 0; // if this ever goes negative we have our bracket
+    firstCompleteSetEncountered := false;
+    firstOpenCharaterEncountered := false;
 
-    // will vary if Inside or outer, but needs to be added back only after the search is done
-    aCursorPosition.MoveRelative(0, -1);
-
-    // todo: handle character not found
-    if aCursorPosition.Character = aCloseCharacter then
+    while (openBracketCount >= 0) and aCursorPosition.SearchAgain do
     begin
-      toPos.Col := aCursorPosition.Column;
-      toPos.Line := aCursorPosition.Row;
-      aCursorPosition.SearchOptions.Direction := sdBackward;
-      aCursorPosition.SearchOptions.SearchText := Format('%s%s', [openEscapeChar, aOpenCharacter]);
-      aCursorPosition.SearchAgain;
+      aCursorPosition.MoveRelative(0, -1);
+
+      if aCursorPosition.Character = aOpenCharacter then
+      begin
+        if not firstOpenCharaterEncountered then
+        begin
+          fromPos.Col := aCursorPosition.Column + 1;
+          fromPos.Line := aCursorPosition.Row;
+          firstOpenCharaterEncountered := true;
+        end;
+
+        inc(openBracketCount);
+      end
+      else
+        dec(openBracketCount);
+
+      if (openBracketCount = 0) and (not firstCompleteSetEncountered) then
+      begin
+        toPos.Col := aCursorPosition.Column;
+        toPos.Line := aCursorPosition.Row;
+        firstCompleteSetEncountered := true;
+      end;
+
       aCursorPosition.MoveRelative(0, 1);
-      fromPos.Col := aCursorPosition.Column;
-      fromPos.Line := aCursorPosition.Row;
-    end
-    else
+
+      if aOpenCharacter = aCloseCharacter then
+        break;
+    end;
+
+    // we have an open bracket
+    if (openBracketCount < 0) or (aOpenCharacter = aCloseCharacter) then
     begin
-      fromPos.Col := aCursorPosition.Column + 1;
-      fromPos.Line := aCursorPosition.Row;
-      aCursorPosition.SearchOptions.SearchText := Format('%s%s', [closeEscapeChar, aCloseCharacter]);
-      aCursorPosition.SearchAgain;
       toPos.Col := aCursorPosition.Column - 1;
       toPos.Line := aCursorPosition.Row;
+
+      aCursorPosition.Restore;
+      aCursorPosition.Save;
+      aCursorPosition.SearchOptions.Direction := sdBackward;
+      openBracketCount := 0;
+
+      while (openBracketCount >= 0) and aCursorPosition.SearchAgain do
+      begin
+        if aCursorPosition.Character = aCloseCharacter then
+          inc(openBracketCount)
+        else
+          dec(openBracketCount);
+
+        if (openBracketCount < 0) or (aOpenCharacter = aCloseCharacter) then
+        begin
+          fromPos.Col := aCursorPosition.Column + 1;
+          fromPos.Line := aCursorPosition.Row;
+        end;
+
+        if aOpenCharacter = aCloseCharacter then
+          break;
+      end;
     end;
 
     aCursorPosition.Move(fromPos.Line, fromPos.Col - IfThen(FIaType = itAround, 1, 0));
@@ -151,6 +190,7 @@ begin
     result.BeginBlock;
     result.Extend(toPos.Line, toPos.Col + IfThen(FIaType = itAround, 1, 0));
     result.EndBlock;
+    aBuffer.TopView.MoveViewToCursor;
   finally
     aCursorPosition.SearchOptions.RegularExpression := False;
   end;
