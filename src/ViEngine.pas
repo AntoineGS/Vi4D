@@ -263,7 +263,7 @@ begin
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViTextObjectCClass)
   else if FViNavigationBindings.TryGetValue(commandToMatch, aViNavigationCClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViNavigationCClass)
-  else if FViEditBindings.TryGetValue(commandToMatch, aViEditCClass) then
+  else if (FCurrentOperation.OperatorCommand = nil) and FViEditBindings.TryGetValue(commandToMatch, aViEditCClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViEditCClass)
   else
   begin
@@ -277,6 +277,11 @@ begin
       if FViNavigationBindings.TryGetValue(searchString, aViNavigationCClass) then
       begin
         FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViNavigationCClass, copy(commandToMatch, len, 1));
+        keepChar := False;
+      end
+      else if FViTextObjectBindings.TryGetValue(searchString, aViTextObjectCClass) then
+      begin
+        FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViTextObjectCClass, copy(commandToMatch, len, 1));
         keepChar := False;
       end;
     end;
@@ -304,26 +309,15 @@ begin
   FViOperatorBindings.Add('gu', TViOCLowercase);
 
   // motions
-//  FViTextObjectBindings.Add('p', TViTOCParagraph); // for a/i
   FViTextObjectBindings.Add('w', TViTOCWord);
   FViTextObjectBindings.Add('W', TViTOCWordCharacter);
-//  FViTextObjectBindings.Add('[', TViTOCSquareBracketOpen); // for a/i
-//  FViTextObjectBindings.Add(']', TViTOCSquareBracketClose); // for a/i
-//  FViTextObjectBindings.Add('(', TViTOCParenthesisOpen); // for a/i
-//  FViTextObjectBindings.Add(')', TViTOCParenthesisClose); // for a/i
-//  FViTextObjectBindings.Add('{', TViTOCBracesOpen); // for a/i
-//  FViTextObjectBindings.Add('}', TViTOCBracesClose); // for a/i
-//  FViTextObjectBindings.Add('<', TViTOCAngleBracketOpen); // for a/i
-//  FViTextObjectBindings.Add('>', TViTOCAngleBracketClose); // for a/i
-//  FViTextObjectBindings.Add('''', TViTOCSingleQuote); // for a/i
-//  FViTextObjectBindings.Add('"', TViTOCDoubleQuote); // for a/i
-//  FViTextObjectBindings.Add('`', TViTOCTick); // for a/i
   FViTextObjectBindings.Add('b', TViTOCWordBack);
   FViTextObjectBindings.Add('B', TViTOCWordCharacterBack);
   FViTextObjectBindings.Add('e', TViTOCEndOfWord);
   FViTextObjectBindings.Add('E', TViTOCEndOfWordCharacter);
-//  FViTextObjectBindings.Add('B', TViTOCBlocks); // for a/i
-//  FViTextObjectBindings.Add('t', TViTOCTag); // for a/i
+  FViTextObjectBindings.Add('i+', TViOCInner);
+  FViTextObjectBindings.Add('a+', TViOCAround);
+
 
   // here '+' denotes that another character is needed to run/match the command
   FViNavigationBindings.add('h', TViNCLeft);
@@ -352,6 +346,7 @@ begin
   FViNavigationBindings.add('}', TViNCNextParagraphBreak);
 //  FViTextObjectBindings.Add('''', TViNCGoToMark); // takes in the mark char
 
+  // one-shots with number modifiers
   FViEditBindings.Add('a', TViECAppend);
   FViEditBindings.Add('A', TViECAppendEOL);
   FViEditBindings.Add('i', TViECInsert);
@@ -375,7 +370,7 @@ begin
   FViEditBindings.Add('.', TViECRepeatLastCommand);
   FViEditBindings.Add('~', TViECToggleCase);
 
-  // todo: move these outside and require the ENTER key to run, so I can add modifiers like '!'
+  // todo: move these and require the ENTER key to run, so I can add modifiers like '!'
   FViEditBindings.Add(':w', TViECSaveFile);
   FViEditBindings.Add(':q', TViECCloseFile);
 

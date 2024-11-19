@@ -25,7 +25,9 @@ type
     FViEngine: IViEngine;
     FClipboard: TClipboard;
     procedure ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
-        LPOS: TOTAEditPos);
+        LPOS: TOTAEditPos); overload;
+    procedure ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
+        LSelection: IOTAEditBlock); overload;
   public
     {$MESSAGE 'MAKE SURE TO REMOVE IViEngine!'}
     constructor Create(aClipboard: TClipboard; viEngineToRemove: IViEngine); reintroduce; virtual;
@@ -173,6 +175,49 @@ begin
       FViEngine.currentViMode := mInsert;
 
     LSelection.EndBlock;
+  finally
+    if restoreCustorPosition then
+      aCursorPosition.Restore;
+  end;
+end;
+
+// todo: currently a duplicate
+procedure TViCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
+    LSelection: IOTAEditBlock);
+var
+  LTemp: String;
+  restoreCustorPosition: Boolean;
+begin
+  if aCursorPosition = nil then
+    Raise Exception.Create('aCursorPosition must be set in call to ChangeIndentation');
+
+  restoreCustorPosition := AAction in [baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase];
+
+  if restoreCustorPosition then
+    aCursorPosition.Save;
+  try
+    FClipboard.SetCurrentRegisterIsLine(AIsLine);
+    LTemp := LSelection.Text;
+    FClipboard.SetCurrentRegisterText(LTemp);
+
+    case AAction of
+      baDelete, baChange:
+        LSelection.Delete;
+      baYank:
+        LSelection.Reset;
+      baIndentLeft:
+        ChangeIndentation(aCursorPosition, dBack);
+      baIndentRight:
+        ChangeIndentation(aCursorPosition, dForward);
+      baUppercase:
+        ChangeCase(aCursorPosition, true);
+      baLowercase:
+        ChangeCase(aCursorPosition, false);
+    end;
+
+    if AAction = baChange then
+      FViEngine.currentViMode := mInsert;
+
   finally
     if restoreCustorPosition then
       aCursorPosition.Restore;

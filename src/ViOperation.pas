@@ -34,7 +34,8 @@ type
     constructor Create(aViEngine: IViEngine; aClipboard: TClipboard);
     destructor Destroy; override;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViOperatorCClass: TViOperatorCClass); overload;
-    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViTextObjectCClass: TViTextObjectCClass); overload;
+    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViTextObjectCClass: TViTextObjectCClass;
+        searchToken: string = ''); overload;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViNavigationCClass: TViNavigationCClass;
         searchToken: string = ''); overload;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViEditCClass: TViEditCClass); overload;
@@ -47,6 +48,7 @@ type
     function Count(default: integer = 1): integer;
     property CommandToMatch: string read FCommandToMatch;
     property LastCommand: string read FLastCommand;
+    property OperatorCommand: TViOperatorC read FOperator;
     property onCommandChanged: TCommandChangedProc write SetOnCommandChanged;
   end;
 
@@ -166,9 +168,12 @@ begin
   Reset(true);
 end;
 
-procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViTextObjectCClass: TViTextObjectCClass);
+procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViTextObjectCClass: TViTextObjectCClass;
+    searchToken: string = '');
 var
   aNormalMotion: INavigationMotion;
+  aSearchMotion: ISearchMotion;
+  aEditionMotion: IEditionMotion;
 begin
   if aViTextObjectCClass = nil then
     Raise Exception.Create('aViTextObjectCClass must be set in call to SetAndExecuteIfComplete');
@@ -180,8 +185,14 @@ begin
   begin
     FMotion := aViTextObjectCClass.Create(FClipboard, FViEngine);
 
+    if Supports(FMotion, ISearchMotion, aSearchMotion) then
+      aSearchMotion.SearchToken := searchToken;
+
     if Supports(FMotion, INavigationMotion, aNormalMotion) then
       aNormalMotion.Execute(aCursorPosition, FOperator, Count(aNormalMotion.DefaultCount));
+
+    if Supports(FMotion, IEditionMotion, aEditionMotion) then
+      aEditionMotion.Execute(aCursorPosition, FOperator, 0);
   end;
 
   Reset(FOperator <> nil);
@@ -203,7 +214,7 @@ begin
   begin
     FMotion := aViNavigationCClass.Create(FClipboard, FViEngine);
 
-    if Supports(Fmotion, ISearchMotion, aSearchMotion) then
+    if Supports(FMotion, ISearchMotion, aSearchMotion) then
       aSearchMotion.SearchToken := searchToken;
 
     if Supports(FMotion, INavigationMotion, aNormalMotion) then

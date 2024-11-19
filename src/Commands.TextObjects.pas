@@ -6,7 +6,10 @@ uses
   Commands.Base,
   Commands.Operators,
   Commands.Navigation,
-  ToolsAPI;
+  Commands.TextObjects.InnerAround,
+  ToolsAPI,
+  Clipboard,
+  Generics.Collections;
 
 type
   TViTextObjectC = class(TViCommand)
@@ -17,8 +20,8 @@ type
 
   TViTextObjectCClass = class of TViTextObjectC;
 
-  TViTOCParagraph = class(TViTextObjectC)
-  end;
+//  TViTOCParagraph = class(TViTextObjectC)
+//  end;
 
   TViTOCWord = class(TViTextObjectC, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
@@ -44,51 +47,33 @@ type
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViTOCParenthesisOpen = class(TViTextObjectC)
+  TViOCInnerAround = class(TViTextObjectC, ISearchMotion, IEditionMotion)
+  private
+    FSearchToken: string;
+  protected
+    class var
+      FViIAKeyBindings: TDictionary<string, TInnerAroundCClass>;
+    class procedure FillViBindings;
+  public
+    function GetSearchToken: string;
+    procedure SetSearchToken(const aValue: string);
+    property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TViTOCParenthesisClose = class(TViTextObjectC)
+  // these will delegate the Move to their sub command
+  TViOCInner = class(TViOCInnerAround, IInnerAroundMotion)
+    function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TViTOCSquareBracketOpen = class(TViTextObjectC)
-  end;
-
-  TViTOCSquareBracketClose = class(TViTextObjectC)
-  end;
-
-  TViTOCBracesOpen = class(TViTextObjectC)
-  end;
-
-  TViTOCBracesClose = class(TViTextObjectC)
-  end;
-
-  TViTOCAngleBracketOpen = class(TViTextObjectC)
-  end;
-
-  TViTOCAngleBracketClose = class(TViTextObjectC)
-  end;
-
-  TViTOCSingleQuote = class(TViTextObjectC)
-  end;
-
-  TViTOCDoubleQuote = class(TViTextObjectC)
-  end;
-
-  TViTOCTick = class(TViTextObjectC)
-  end;
-
-  // b in vim
-  TViTOCBlock = class(TViTextObjectC)
-  end;
-
-  // t
-  TViTOCTag = class(TViTextObjectC)
+  TViOCAround = class(TViOCInnerAround, IInnerAroundMotion)
+    function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
 implementation
 
 uses
-  SysUtils;
+  SysUtils,
+  NavUtils;
 
 { TViTOCWord }
 
@@ -121,22 +106,29 @@ procedure TViTextObjectC.Execute(aCursorPosition: IOTAEditPosition; aViOperatorC
 var
   lPos: TOTAEditPos;
   aNormalMotion: INavigationMotion;
+  aIAMotion: IInnerAroundMotion;
+  LSelection: IOTAEditBlock;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Execute');
 
-  if not Supports(self, INavigationMotion, aNormalMotion) then
-    Exit;
-
-  if aViOperatorC = nil then
+  if Supports(self, INavigationMotion, aNormalMotion) then
   begin
-    lPos := GetPositionForMove(aCursorPosition, aNormalMotion, false, aCount);
-    aCursorPosition.Move(lPos.Line, lPos.Col);
+    if aViOperatorC = nil then
+    begin
+      lPos := GetPositionForMove(aCursorPosition, aNormalMotion, false, aCount);
+      aCursorPosition.Move(lPos.Line, lPos.Col);
+    end
+    else
+    begin
+      lPos := GetPositionForMove(aCursorPosition, aNormalMotion, true, aCount);
+      ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, false, lPos);
+    end;
   end
-  else
+  else if Supports(self, IInnerAroundMotion, aIAMotion) then
   begin
-    lPos := GetPositionForMove(aCursorPosition, aNormalMotion, true, aCount);
-    ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, false, lPos);
+    LSelection := aIAMotion.GetSelection(aCursorPosition);
+    ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, true, LSelection);
   end;
 end;
 
@@ -248,5 +240,97 @@ begin
     aCursorPosition.MoveRelative(0, -1);
   end;
 end;
+
+{ TViOCInnerAround }
+
+function TViOCInnerAround.GetSearchToken: string;
+begin
+  result := FSearchToken;
+end;
+
+procedure TViOCInnerAround.SetSearchToken(const aValue: string);
+begin
+  FSearchToken := aValue;
+end;
+
+{ TViOCInner }
+
+function TViOCInner.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock; // these can AV if nothing is found, gotta fix that   dd
+var
+  aIACClass: TInnerAroundCClass;
+  aIAC: TInnerAroundC;
+  aBuffer: IOTAEditBuffer;
+  aIAMotion: IInnerAroundMotion;
+begin
+  aBuffer := GetEditBuffer;
+
+  if FViIAKeyBindings.TryGetValue(FSearchToken, aIACClass) then
+  begin
+    aIAC := aIACClass.Create(FClipboard, FViEngine, itInner);
+
+    if Supports(aIAC, IInnerAroundMotion, aIAMotion) then
+    begin
+      result := aIAMotion.GetSelection(aCursorPosition);
+      aBuffer.TopView.MoveViewToCursor;
+    end;
+  end;
+end;
+
+{ TViOCAround }
+
+// todo: some commands like `w` should keep one of the two spaces around the word, will need to add this in
+function TViOCAround.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
+var
+  aIACClass: TInnerAroundCClass;
+  aIAC: TInnerAroundC;
+  aBuffer: IOTAEditBuffer;
+  aIAMotion: IInnerAroundMotion;
+begin
+  aBuffer := GetEditBuffer;
+
+  if FViIAKeyBindings.TryGetValue(FSearchToken, aIACClass) then
+  begin
+    aIAC := aIACClass.Create(FClipboard, FViEngine, itAround);
+
+    if Supports(aIAC, IInnerAroundMotion, aIAMotion) then
+    begin
+      result := aIAMotion.GetSelection(aCursorPosition);
+      aBuffer.TopView.MoveViewToCursor;
+    end;
+  end;
+end;
+
+{ TViOCInnerAround }
+
+{ TViOCInnerAround }
+
+class procedure TViOCInnerAround.FillViBindings;
+begin
+  FViIAKeyBindings.Add('(', TIAParenthesis);
+  FViIAKeyBindings.Add(')', TIAParenthesis);
+  FViIAKeyBindings.Add('p', TIAParagraph);
+  FViIAKeyBindings.Add('[', TIASquareBracket);
+  FViIAKeyBindings.Add(']', TIASquareBracket);
+  FViIAKeyBindings.Add('{', TIABraces);
+  FViIAKeyBindings.Add('}', TIABraces);
+  FViIAKeyBindings.Add('<', TIAAngleBracket);
+  FViIAKeyBindings.Add('>', TIAAngleBracket);
+  FViIAKeyBindings.Add('''', TIASingleQuote);
+  FViIAKeyBindings.Add('"', TIADoubleQuote);
+  FViIAKeyBindings.Add('`', TIATick);
+  FViIAKeyBindings.Add('B', TIABlocks); // [{]}
+//  FViIAKeyBindings.Add('b', TIABlocks); // [(])
+  FViIAKeyBindings.Add('t', TIATag);
+  FViIAKeyBindings.Add('w', TIAWord);
+//  FViIAKeyBindings.Add('W', TIAWord);
+// missing s (sentence)
+end;
+
+initialization
+  TViOCInnerAround.FViIAKeyBindings := TDictionary<string, TInnerAroundCClass>.Create;
+  TViOCInnerAround.FillViBindings;
+
+finalization
+  TViOCInnerAround.FViIAKeyBindings.Free;
 
 end.
