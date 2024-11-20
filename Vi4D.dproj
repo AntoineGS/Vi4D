@@ -63,7 +63,6 @@
 			<DCCReference Include="rtl.dcp"/>
 			<DCCReference Include="designide.dcp"/>
 			<DCCReference Include="src\Commands.Navigation.pas"/>
-			<DCCReference Include="src\Commands.TextObjects.pas"/>
 			<DCCReference Include="src\ViDelphiWizard.pas"/>
 			<DCCReference Include="src\ViEngine.pas"/>
 			<DCCReference Include="src\Commands.Operators.pas"/>
@@ -72,7 +71,7 @@
 			<DCCReference Include="src\NavUtils.pas"/>
 			<DCCReference Include="src\Clipboard.pas"/>
 			<DCCReference Include="src\Commands.Editing.pas"/>
-			<DCCReference Include="src\Commands.TextObjects.InsideAround.pas"/>
+			<DCCReference Include="src\Commands.Navigation.InsideAround.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

@@ -113,8 +113,7 @@ uses
   SysUtils,
   NavUtils,
   Commands.Navigation,
-  Commands.Operators,
-  Commands.TextObjects;
+  Commands.Operators;
 
 procedure Paste(aClipboard: TClipboard; const AEditPosition: IOTAEditPosition; ADirection: TDirection);
 var

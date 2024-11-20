@@ -31,7 +31,6 @@ uses
   Commands.Base,
   Commands.Navigation,
   Commands.Operators,
-  Commands.TextObjects,
   Commands.Editing,
   ViOperation,
   Clipboard,
@@ -48,7 +47,6 @@ type
     FCurrentOperation: TViOperation;
     FOnCaptionChanged: TCaptionChangeProc; // called when Vi Mode is changed
     FViOperatorBindings: TDictionary<string, TViOperatorCClass>;
-    FViTextObjectBindings: TDictionary<string, TViTextObjectCClass>;
     FViNavigationBindings: TDictionary<string, TViNavigationCClass>;
     FViEditBindings: TDictionary<string, TViEditCClass>;
     FClipboard: TClipboard;
@@ -112,7 +110,6 @@ constructor TViEngine.Create;
 begin
   currentViMode := mNormal;
   FViOperatorBindings := TDictionary<string, TViOperatorCClass>.Create;
-  FViTextObjectBindings := TDictionary<string, TViTextObjectCClass>.Create;
   FViNavigationBindings := TDictionary<string, TViNavigationCClass>.Create;
   FViEditBindings := TDictionary<string, TViEditCClass>.Create;
   FClipboard := TClipboard.Create;
@@ -130,7 +127,6 @@ begin
   FClipboard.Free;
   FViEditBindings.Free;
   FViNavigationBindings.Free;
-  FViTextObjectBindings.Free;
   FViOperatorBindings.Free;
   inherited;
 end;
@@ -239,7 +235,6 @@ end;
 procedure TViEngine.HandleChar(const AChar: Char);
 var
   aViOperatorCClass: TViOperatorCClass;
-  aViTextObjectCClass: TViTextObjectCClass;
   aViNavigationCClass: TViNavigationCClass;
   aViEditCClass: TViEditCClass;
   commandToMatch: string;
@@ -259,8 +254,6 @@ begin
     // we dont act on this, we just store if as a modifier for other commands
   else if FViOperatorBindings.TryGetValue(commandToMatch, aViOperatorCClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViOperatorCClass)
-  else if FViTextObjectBindings.TryGetValue(commandToMatch, aViTextObjectCClass) then
-    FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViTextObjectCClass)
   else if FViNavigationBindings.TryGetValue(commandToMatch, aViNavigationCClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViNavigationCClass)
   else if (FCurrentOperation.OperatorCommand = nil) and FViEditBindings.TryGetValue(commandToMatch, aViEditCClass) then
@@ -277,11 +270,6 @@ begin
       if FViNavigationBindings.TryGetValue(searchString, aViNavigationCClass) then
       begin
         FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViNavigationCClass, copy(commandToMatch, len, 1));
-        keepChar := False;
-      end
-      else if FViTextObjectBindings.TryGetValue(searchString, aViTextObjectCClass) then
-      begin
-        FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViTextObjectCClass, copy(commandToMatch, len, 1));
         keepChar := False;
       end;
     end;
@@ -310,14 +298,14 @@ begin
   FViOperatorBindings.Add('gu', TViOCLowercase);
 
   // motions
-  FViTextObjectBindings.Add('w', TViTOCWord);
-  FViTextObjectBindings.Add('W', TViTOCWordCharacter);
-  FViTextObjectBindings.Add('b', TViTOCWordBack);
-  FViTextObjectBindings.Add('B', TViTOCWordCharacterBack);
-  FViTextObjectBindings.Add('e', TViTOCEndOfWord);
-  FViTextObjectBindings.Add('E', TViTOCEndOfWordCharacter);
-  FViTextObjectBindings.Add('i+', TViOCInside);
-  FViTextObjectBindings.Add('a+', TViOCAround);
+  FViNavigationBindings.Add('w', TViTOCWord);
+  FViNavigationBindings.Add('W', TViTOCWordCharacter);
+  FViNavigationBindings.Add('b', TViTOCWordBack);
+  FViNavigationBindings.Add('B', TViTOCWordCharacterBack);
+  FViNavigationBindings.Add('e', TViTOCEndOfWord);
+  FViNavigationBindings.Add('E', TViTOCEndOfWordCharacter);
+  FViNavigationBindings.Add('i+', TViNCInside);
+  FViNavigationBindings.Add('a+', TViNCAround);
 
   // here '+' denotes that another character is needed to run/match the command
   FViNavigationBindings.add('h', TViNCLeft);

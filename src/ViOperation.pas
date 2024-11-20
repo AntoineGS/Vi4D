@@ -6,7 +6,6 @@ uses
   Generics.Collections,
   Commands.Base,
   Commands.Operators,
-  Commands.TextObjects,
   Commands.Navigation,
   Commands.Editing,
   SysUtils,
@@ -34,8 +33,6 @@ type
     constructor Create(aViEngine: IViEngine; aClipboard: TClipboard);
     destructor Destroy; override;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViOperatorCClass: TViOperatorCClass); overload;
-    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViTextObjectCClass: TViTextObjectCClass;
-        searchToken: string = ''); overload;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViNavigationCClass: TViNavigationCClass;
         searchToken: string = ''); overload;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViEditCClass: TViEditCClass); overload;
@@ -168,41 +165,12 @@ begin
   Reset(true);
 end;
 
-procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViTextObjectCClass: TViTextObjectCClass;
-    searchToken: string = '');
-var
-  aNormalMotion: INavigationMotion;
-  aSearchMotion: ISearchMotion;
-  aEditionMotion: IEditionMotion;
-begin
-  if aViTextObjectCClass = nil then
-    Raise Exception.Create('aViTextObjectCClass must be set in call to SetAndExecuteIfComplete');
-
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
-
-  if FMotion = nil then
-  begin
-    FMotion := aViTextObjectCClass.Create(FClipboard, FViEngine);
-
-    if Supports(FMotion, ISearchMotion, aSearchMotion) then
-      aSearchMotion.SearchToken := searchToken;
-
-    if Supports(FMotion, INavigationMotion, aNormalMotion) then
-      aNormalMotion.Execute(aCursorPosition, FOperator, Count(aNormalMotion.DefaultCount));
-
-    if Supports(FMotion, IEditionMotion, aEditionMotion) then
-      aEditionMotion.Execute(aCursorPosition, FOperator, 0);
-  end;
-
-  Reset(FOperator <> nil);
-end;
-
 procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViNavigationCClass: TViNavigationCClass;
     searchToken: string = '');
 var
   aNormalMotion: INavigationMotion;
   aSearchMotion: ISearchMotion;
+  aEditionMotion: IEditionMotion;
 begin
   if aViNavigationCClass = nil then
     Raise Exception.Create('aViNavigationCClass must be set in call to SetAndExecuteIfComplete');
@@ -219,6 +187,9 @@ begin
 
     if Supports(FMotion, INavigationMotion, aNormalMotion) then
       aNormalMotion.Execute(aCursorPosition, FOperator, Count(aNormalMotion.DefaultCount));
+
+    if Supports(FMotion, IEditionMotion, aEditionMotion) then
+      aEditionMotion.Execute(aCursorPosition, FOperator, 0);
   end;
 
   Reset(FOperator <> nil);

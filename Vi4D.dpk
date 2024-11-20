@@ -30,7 +30,6 @@ requires
 
 contains
   Commands.Navigation in 'src\Commands.Navigation.pas',
-  Commands.TextObjects in 'src\Commands.TextObjects.pas',
   ViDelphiWizard in 'src\ViDelphiWizard.pas',
   ViEngine in 'src\ViEngine.pas',
   Commands.Operators in 'src\Commands.Operators.pas',
@@ -39,6 +38,6 @@ contains
   NavUtils in 'src\NavUtils.pas',
   Clipboard in 'src\Clipboard.pas',
   Commands.Editing in 'src\Commands.Editing.pas',
-  Commands.TextObjects.InsideAround in 'src\Commands.TextObjects.InsideAround.pas';
+  Commands.Navigation.InsideAround in 'src\Commands.Navigation.InsideAround.pas';
 
 end.
