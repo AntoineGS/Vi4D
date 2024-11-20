@@ -169,10 +169,10 @@ procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; 
     searchToken: string = '');
 var
   aSearchMotion: ISearchMotion;
-  aEditionMotion: IEditionMotion;
+  aExecuteMotion: IExecuteMotion;
 begin
   if aMotionClass = nil then
-    Raise Exception.Create('aNavigationCClass must be set in call to SetAndExecuteIfComplete');
+    Raise Exception.Create('aMotionClass must be set in call to SetAndExecuteIfComplete');
 
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
@@ -184,8 +184,8 @@ begin
     if Supports(FMotion, ISearchMotion, aSearchMotion) then
       aSearchMotion.SearchToken := searchToken;
 
-    if Supports(FMotion, IEditionMotion, aEditionMotion) then
-      aEditionMotion.Execute(aCursorPosition, FOperator, Count(aEditionMotion.DefaultCount));
+    if Supports(FMotion, IExecuteMotion, aExecuteMotion) then
+      aExecuteMotion.Execute(aCursorPosition, FOperator, Count(aExecuteMotion.DefaultCount));
   end;
 
   Reset(FOperator <> nil);

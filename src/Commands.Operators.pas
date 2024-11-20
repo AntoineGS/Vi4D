@@ -20,12 +20,10 @@ type
 
   TOperatorClass = class of TOperator;
 
-  INavigationMotion = interface
+  IMoveMotion = interface
   ['{D71A2796-A08C-46E5-8396-A28034A778D5}']
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
     function DefaultCount: integer;
-    // todo: should probably remove this in favor of having the two interfaces or inherit from the below
-//    procedure Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TOperator; aCount: integer);
   end;
 
   TOperatorDelete = class(TOperator)
@@ -66,7 +64,7 @@ type
   end;
 
   function CharAtRelativeLocation(aCursorPosition: IOTAEditPosition; ACol: Integer): TCharClass;
-  function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: INavigationMotion; forEdition: boolean;
+  function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: IMoveMotion; forEdition: boolean;
       ACount: Integer = 1; fullLines: boolean = false): TOTAEditPos;
 
 implementation
@@ -76,7 +74,7 @@ uses
   NavUtils,
   Commands.Edition;
 
-function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: INavigationMotion; forEdition: boolean;
+function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: IMoveMotion; forEdition: boolean;
     ACount: Integer = 1; fullLines: boolean = false): TOTAEditPos;
 var
   LPos: TOTAEditPos;

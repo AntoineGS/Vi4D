@@ -247,20 +247,20 @@ end;
 procedure TEditionDeleteTilEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   lPos: TOTAEditPos;
-  aNavigationMotion: INavigationMotion;
-  aMotionTrueEndOfLine: TMotionTrueEOL;
+  aMoveMotion: IMoveMotion;
+  aMotionTrueEOL: TMotionTrueEOL;
 begin
   inherited;
 
-  aMotionTrueEndOfLine := TMotionTrueEOL.Create(FClipboard, FEngine);
+  aMotionTrueEOL := TMotionTrueEOL.Create(FClipboard, FEngine);
   try
-    if not Supports(aMotionTrueEndOfLine, INavigationMotion, aNavigationMotion) then
+    if not Supports(aMotionTrueEOL, IMoveMotion, aMoveMotion) then
       Exit;
 
-    lPos := GetPositionForMove(aCursorPosition, aNavigationMotion, true, aCount);
+    lPos := GetPositionForMove(aCursorPosition, aMoveMotion, true, aCount);
     ApplyActionToSelection(aCursorPosition, baDelete, false, lPos);
   finally
-    aMotionTrueEndOfLine.Free;
+    aMotionTrueEOL.Free;
   end;
 end;
 
