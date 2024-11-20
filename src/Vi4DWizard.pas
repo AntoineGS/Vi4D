@@ -75,7 +75,7 @@ implementation
 uses
   Dialogs,
   Graphics,
-  Commands.Base; //todo: move this to a interface unit
+  Commands.Base;
 
 Var
   iWizard: Integer = 0;

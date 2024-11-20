@@ -25,7 +25,7 @@ implementation
 
 function TClipboard.CurrentRegister: TRegister;
 begin
-  //todo: this could yield an out of bounds
+  //this could yield an out of bounds once better register logic is implement, need to take into account at that point
   result := FRegisterArray[FSelectedRegister];
 end;
 

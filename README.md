@@ -13,14 +13,9 @@ Thank you to both of those projects for the ideas and foundations. :)
 - Right-click the 'Vi4D.bpl' entry in the project view
 - Click on 'Install'
 
-### IDE Action
+### IDE Toolbar
 
-It is highly recommended to add the included command to a toolbar so that you can activate/deactivate the plugin, as well as see what more you are in.
-
-- Right-click on your IDE toolbar and click `customize`
-- Go to the `Commands` tab
-- In the `Tools` category, local the new `Command`
-- Drag and drop it on an existing toolbar, and voila!
+The plugin will automatically install a toolbutton on the Custom toolbar, which is used to show the Vi Mode, the current command being typed as well as give the ability to activate/deactivate the plugin. So make sure you have the Custom toolbar shown!
 
 ## Debugging
 
@@ -29,30 +24,34 @@ Note: This does not seem to work in recent versionof Delphi, it works great in D
 
 ## Roadmap
 
-Coming soon
+- Support for `#`, Half Page and Page Up/Down, `gUU`, `guu`, (maybe) `=`
+- Complete the inside/around featuresets (paragraphs, tags, blocks, word)
+- Selected text behaviors (like selecting text and pressing d to delete selection)
+- Implement `/` searching
+- `V`, `v` and (maybe) `<C-V>`
+- Undoing operations that are more than one smaller operations require undoing each smaller operation, find a way to 'group' operations
+- Marks support
+- I Would LOVE to implement relative line numbers... not sure if it is possible though
+- Better registry support (currently only one entry is supported)
+- Add more `:` commands and require enter key to trigger the parsing and move them to their own keybinding logic, starting with `!`
+- Configurable bindings
+- Look into merging the duplicated `ApplyActionToSelection` methods
 
-## Known issues / Differences with Neovim
+## Known issues
 
-A lot of this are notes I have taken during the initial refactor/rewrite, I will clean them up at some point as I address them.
-
-- Selected text will not trigger any special behavior (so selecting text and pressing x or d will not delete the selection)
-- Undoing operations that are more than one smaller operations require undoing each smaller operation
+- Issues with cut and pasting lines not adding new lines
 - `r` does not go back to Normal mode after entering the replacement character
 - `S` does not support number.modifier
-- `/` is not implemented yet
-- No `V` or `v` or `<C-V>`
-- No inner/around yet
-- TextObjects and Navigation are (so far) the same, Navigation has an .Execute a bit more complete, review after inner/around to see if it is still true
 - `dw` does not work when on a white space, it should delete the whitespace
-- add a centralized Move in Nav to validate input
-- Marks support
-- Clipboard only supports one entry
 - Using `Fx` and `Tx` when the cursor is past EoL causes the cursor to move to the wrong place
-- I Would LOVE to implement relative line numbers... not sure if it is possible though
+- Undo and Redo do not bring the cursor back to the change
+- Around motions with things like `w` need to keep one of the two spaces around
+- After using some motions like Inside\Around when the cursor is before the text to change (like before the opening bracket), the view is changed with the cursor on the top line
 
-(Wont Fix)
+## Particularities
 
 - `L` goes to last -1 line, due to IDE auto-scrolling if we to to the last line
+- `U` is used to Redo, instead of the classic `<C-R>`
 
 ## License
 

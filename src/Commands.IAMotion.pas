@@ -105,7 +105,6 @@ var
   firstOpenCharaterEncountered: boolean;
 begin
   try
-    // todo: maybe a clear highlight would resolve the sticky characters
     openEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     closeEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     aBuffer := GetEditBuffer;

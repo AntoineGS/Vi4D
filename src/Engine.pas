@@ -349,7 +349,6 @@ begin
   FEditionBindings.Add('R', TEditionReplaceMode);
   FEditionBindings.Add('u', TEditionUndo);
   FEditionBindings.Add('U', TEditionRedo);
-//  FViEditBindings.Add('<C-R>', TEditionDeleteCharacter);
   FEditionBindings.Add('x', TEditionDeleteCharacter);
   FEditionBindings.Add('X', TEditionDeletePreviousCharacter);
   FEditionBindings.Add('p', TEditionPaste);
@@ -358,7 +357,6 @@ begin
   FEditionBindings.Add('.', TEditionRepeatLastCommand);
   FEditionBindings.Add('~', TEditionToggleCase);
 
-  // todo: move these and require the ENTER key to run, so I can add modifiers like '!'
   FEditionBindings.Add(':w', TEditionSaveFile);
   FEditionBindings.Add(':q', TEditionCloseFile);
 

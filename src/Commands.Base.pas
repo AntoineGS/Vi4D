@@ -180,7 +180,6 @@ begin
   end;
 end;
 
-// todo: currently a duplicate
 procedure TCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
     LSelection: IOTAEditBlock);
 var

@@ -935,7 +935,6 @@ end;
 
 { TMotionAround }
 
-// todo: some commands like `w` should keep one of the two spaces around the word, will need to add this in
 function TMotionAround.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 var
   aIAMotionClass: TIAMotionClass;

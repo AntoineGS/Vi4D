@@ -190,7 +190,6 @@ begin
   aEditionDeleteCharInsert := TEditionDeleteCharInsert.Create(FClipboard, FEngine);
   try
     aEditionDeleteCharInsert.Execute(aCursorPosition, aCount);
-    // todo: somehow this needs to go back to normal mode after entering x characters
   finally
     aEditionDeleteCharInsert.Free;
   end;
@@ -203,7 +202,6 @@ var
   aBuffer: IOTAEditBuffer;
 begin
   inherited;
-  { TODO : Jump to position that is undone }
   aBuffer := GetEditBuffer;
   aBuffer.Undo;
 end;
@@ -454,7 +452,7 @@ begin
   inherited;
   aBuffer := GetEditBuffer;
 
-//  todo: add modifiers to :X commands too, ie :q! before activating the below, for now itll prompt if not saved
+//  add modifiers to :X commands too, ie :q! before activating the below, for now itll prompt if not saved
 //  if aBuffer.IsModified then
 //    raise Exception.Create('File has pending changes, use :w to save changes');
 
@@ -468,7 +466,6 @@ var
   aBuffer: IOTAEditBuffer;
 begin
   inherited;
-  { TODO : Jump to position that is redone }
   aBuffer := GetEditBuffer;
   aBuffer.Redo;
 end;
