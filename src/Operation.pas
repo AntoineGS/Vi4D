@@ -168,7 +168,6 @@ end;
 procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aMotionClass: TMotionClass;
     searchToken: string = '');
 var
-  aNavigationMotion: INavigationMotion;
   aSearchMotion: ISearchMotion;
   aEditionMotion: IEditionMotion;
 begin
@@ -185,11 +184,8 @@ begin
     if Supports(FMotion, ISearchMotion, aSearchMotion) then
       aSearchMotion.SearchToken := searchToken;
 
-    if Supports(FMotion, INavigationMotion, aNavigationMotion) then
-      aNavigationMotion.Execute(aCursorPosition, FOperator, Count(aNavigationMotion.DefaultCount));
-
     if Supports(FMotion, IEditionMotion, aEditionMotion) then
-      aEditionMotion.Execute(aCursorPosition, FOperator, 0);
+      aEditionMotion.Execute(aCursorPosition, FOperator, Count(aEditionMotion.DefaultCount));
   end;
 
   Reset(FOperator <> nil);

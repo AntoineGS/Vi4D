@@ -326,7 +326,7 @@ begin
   FMotionBindings.add('n', TMotionNextMatch);
   FMotionBindings.add('N', TMotionPreviousMatch);
   FMotionBindings.add('*', TMotionNextWholeWordUnderCursor);
-  FMotionBindings.add('#', TMotionPreviousWholeWordUnderCursor);
+//  FMotionBindings.add('#', TMotionPreviousWholeWordUnderCursor);
   FMotionBindings.add(' ', TMotionRight);
   FMotionBindings.add('L', TMotionBottomScreen);
   FMotionBindings.add('M', TMotionMiddleScreen);

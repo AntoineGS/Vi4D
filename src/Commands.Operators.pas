@@ -14,7 +14,6 @@ type
   protected
     function GetBlockAction: TBlockAction; virtual;
   public
-    {$MESSAGE 'review placement of lpos, and requirement after implementing other actions}
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); virtual;
     property BlockAction: TBlockAction read GetBlockAction;
   end;
@@ -26,7 +25,7 @@ type
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
     function DefaultCount: integer;
     // todo: should probably remove this in favor of having the two interfaces or inherit from the below
-    procedure Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TOperator; aCount: integer);
+//    procedure Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TOperator; aCount: integer);
   end;
 
   TOperatorDelete = class(TOperator)
