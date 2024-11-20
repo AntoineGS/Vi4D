@@ -28,47 +28,48 @@ type
   public
     procedure Execute(aCursorPosition: IOTAEditPosition; aOperator: TOperator; aCount: integer);
     function DefaultCount: integer; virtual;
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); virtual;
   end;
 
   TMotionClass = class of TMotion;
 
   TMotionLeft = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionRight = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionBottomScreen = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionMiddleScreen = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionPreviousParagraphBreak = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionNextParagraphBreak = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionDown = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionUp = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionFindForward = class(TMotion, IMoveMotion, ISearchMotion)
   private
     FSearchToken: string;
   public
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
     function GetSearchToken: string;
     procedure SetSearchToken(const aValue: string);
     property SearchToken: string read GetSearchToken write SetSearchToken;
@@ -78,7 +79,7 @@ type
   private
     FSearchToken: string;
   public
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
     function GetSearchToken: string;
     procedure SetSearchToken(const aValue: string);
     property SearchToken: string read GetSearchToken write SetSearchToken;
@@ -88,7 +89,7 @@ type
   private
     FSearchToken: string;
   public
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
     function GetSearchToken: string;
     procedure SetSearchToken(const aValue: string);
     property SearchToken: string read GetSearchToken write SetSearchToken;
@@ -98,7 +99,7 @@ type
   private
     FSearchToken: string;
   public
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
     function GetSearchToken: string;
     procedure SetSearchToken(const aValue: string);
     property SearchToken: string read GetSearchToken write SetSearchToken;
@@ -111,42 +112,42 @@ type
 //  end;
 
   TMotionBOL = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   // $
   TMotionEOL = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionTrueEOL = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   // _
   TMotionBOLAfterWhiteSpace = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionFirstLine = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionGoToLine = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
     function DefaultCount: integer; override;
   end;
 
   TMotionNextMatch = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionPreviousMatch = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionNextWholeWordUnderCursor = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
 //  TMotionPreviousWholeWordUnderCursor = class(TMotion)
@@ -156,27 +157,27 @@ type
 //  end;
 
   TMotionWord = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionWordCharacter = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionWordBack = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionWordCharacterBack = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionEndOfWordCharacter = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionEndOfWord = class(TMotion, IMoveMotion, IExecuteMotion)
-    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
   TMotionInsideAround = class(TMotion, ISearchMotion, IExecuteMotion)
@@ -213,9 +214,7 @@ uses
 
 procedure TMotionLeft.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveRelative(0, -aCount);
 end;
 
@@ -223,9 +222,7 @@ end;
 
 procedure TMotionUp.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveRelative(-aCount, 0);
 end;
 
@@ -233,9 +230,7 @@ end;
 
 procedure TMotionDown.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveRelative(aCount, 0);
 end;
 
@@ -243,9 +238,7 @@ end;
 
 procedure TMotionRight.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveRelative(0, aCount);
 end;
 
@@ -253,9 +246,7 @@ end;
 
 procedure TMotionBOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveBOL;
 end;
 
@@ -263,9 +254,7 @@ end;
 
 procedure TMotionEOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveEOL;
 
   if not forEdition then
@@ -276,9 +265,7 @@ end;
 
 procedure TMotionBOLAfterWhiteSpace.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveBOL;
 
   if aCursorPosition.IsWhiteSpace then
@@ -298,8 +285,7 @@ var
   aIAMotion: IIAMotion;
   LSelection: IOTAEditBlock;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Execute');
+  inherited;
 
   if Supports(self, IMoveMotion, aNormalMotion) then
   begin
@@ -338,13 +324,17 @@ begin
   end;
 end;
 
+procedure TMotion.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+begin
+  if aCursorPosition = nil then
+    Raise Exception.Create('aCursorPosition must be set in call to Move');
+end;
+
 { TMotionTrueEndOfLine }
 
 procedure TMotionTrueEOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.MoveEOL;
 end;
 
@@ -357,8 +347,7 @@ end;
 
 procedure TMotionGoToLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
+  inherited;
 
   if aCount = 0 then
     aCursorPosition.MoveEOF
@@ -370,9 +359,7 @@ end;
 
 procedure TMotionFirstLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   aCursorPosition.GotoLine(1);
 end;
 
@@ -451,6 +438,8 @@ end;
 
 procedure TMotionFindForward.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
+  inherited;
+
   FindForward(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken);
 end;
 
@@ -468,9 +457,7 @@ end;
 
 procedure TMotionFindTilForward.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   FindForward(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken, 2);
 end;
 
@@ -553,9 +540,7 @@ end;
 
 procedure TMotionFindBackwards.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   FindBackwards(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken);
 end;
 
@@ -573,9 +558,7 @@ end;
 
 procedure TMotionFindTilBackwards.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
-
+  inherited;
   FindBackwards(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken, 0);
 end;
 
@@ -590,6 +573,7 @@ procedure TMotionBottomScreen.Move(aCursorPosition: IOTAEditPosition; aCount: in
 var
   aBuffer: IOTAEditBuffer;
 begin
+  inherited;
   aBuffer := GetEditBuffer;
   aCursorPosition.Move(aBuffer.TopView.BottomRow - aCount, 0);
 end;
@@ -601,6 +585,7 @@ var
   aBuffer: IOTAEditBuffer;
   TopView: IOTAEditView;
 begin
+  inherited;
   aBuffer := GetEditBuffer;
   TopView := aBuffer.TopView;
   aCursorPosition.Move(TopView.TopRow + Trunc(((TopView.BottomRow - 1) - TopView.TopRow) / 2), 0);
@@ -616,6 +601,7 @@ var
   aBuffer: IOTAEditBuffer;
   aMotionEndOfWord: TMotionEndOfWord;
 begin
+  inherited;
   aBuffer := GetEditBuffer;
 
   if aCursorPosition.IsWordCharacter then
@@ -665,6 +651,7 @@ var
   i: integer;
   aBuffer: IOTAEditBuffer;
 begin
+  inherited;
   aBuffer := GetEditBuffer;
   LSelection := aBuffer.EditBlock;
   LSelection.Reset;
@@ -692,6 +679,7 @@ var
   i: integer;
   aBuffer: IOTAEditBuffer;
 begin
+  inherited;
   aBuffer := GetEditBuffer;
   LSelection := aBuffer.EditBlock;
   LSelection.Reset;
@@ -716,8 +704,7 @@ var
   i: integer;
   row: integer;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to MoveToParagraphBreak');
+  inherited;
 
   try
     aCursorPosition.SearchOptions.RegularExpression := true;
@@ -751,8 +738,7 @@ var
   i: integer;
   row: integer;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to MoveToParagraphBreak');
+  inherited;
 
   try
     aCursorPosition.SearchOptions.RegularExpression := true;
@@ -787,8 +773,7 @@ procedure TMotionWord.Move(aCursorPosition: IOTAEditPosition; aCount: integer; f
 var
   i: Integer;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
+  inherited;
 
   for i := 1 to ACount do
   begin
@@ -810,8 +795,7 @@ var
   i: Integer;
   LNextChar: TCharClass;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
+  inherited;
 
   for i := 1 to ACount do
   begin
@@ -842,8 +826,7 @@ procedure TMotionWordCharacter.Move(aCursorPosition: IOTAEditPosition; aCount: i
 var
   i: Integer;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
+  inherited;
 
   for i := 1 to ACount do
   begin
@@ -860,8 +843,7 @@ procedure TMotionWordCharacterBack.Move(aCursorPosition: IOTAEditPosition; aCoun
 var
   i: Integer;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to Move');
+  inherited;
 
   for i := 1 to ACount do
   begin
@@ -876,6 +858,8 @@ procedure TMotionEndOfWordCharacter.Move(aCursorPosition: IOTAEditPosition; aCou
 var
   i: Integer;
 begin
+  inherited;
+
   for i := 1 to ACount do
   begin
     if (aCursorPosition.IsWordCharacter or aCursorPosition.IsSpecialCharacter) and
@@ -896,6 +880,8 @@ procedure TMotionEndOfWord.Move(aCursorPosition: IOTAEditPosition; aCount: integ
 var
   i: Integer;
 begin
+  inherited;
+
   for i := 1 to ACount do
   begin
     aCursorPosition.MoveRelative(0, 1);
