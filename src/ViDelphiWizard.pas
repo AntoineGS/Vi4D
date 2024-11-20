@@ -80,6 +80,9 @@ uses
 Var
   iWizard: Integer = 0;
 
+const
+  BUTTON_HINT = 'Vi4D Status bar, click to Disable Vi4D';
+
 Function InitialiseWizard(BIDES: IBorlandIDEServices): TVi4DWizard;
 Begin
   Result := TVi4DWizard.Create;
@@ -153,6 +156,9 @@ begin
   if FButton <> nil then
     Exit;
 
+  RemoveActionFromAllToolbars;
+  // workaround for an annoying issue where there is always an empty button added after each IDE restart
+
   if Supports(BorlandIDEServices, INTAServices, LService) then
   begin
     aToolBar := LService.ToolBar[sCustomToolBar];
@@ -161,7 +167,7 @@ begin
     FButton.AutoSize := True;
     FButton.Name := 'Vi4DBtn';
     FButton.Action := FAction;
-    FButton.Hint := 'Vi4D Status bar, click to Disable Vi4D';
+    FButton.Hint := BUTTON_HINT;
     FButton.ShowHint := True;
     FButton.Style := tbsTextButton;
     lastbtnidx := aToolBar.ButtonCount - 1;
@@ -180,6 +186,9 @@ procedure TVi4DWizard.AddAction;
 var
   LService: INTAServices;
 begin
+  if FAction <> nil then
+    Exit;
+
   if Supports(BorlandIDEServices, INTAServices, LService) then
   begin
     FAction := TAction.Create(nil);
@@ -197,7 +206,6 @@ begin
   FEvents.OnMessage := nil;
   FViEngine.Free;
   FEvents.Free;
-  RemoveActionFromAllToolbars;
 end;
 
 constructor TVi4DWizard.Create;
@@ -299,7 +307,8 @@ begin
   for i := AToolbar.ButtonCount - 1 downto 0 do
   begin
     LButton := AToolbar.Buttons[i];
-    if (LButton.Action = FAction) or (LButton = FButton) then
+    // the buttons that show up after a restart still have the hint (not the name) for some reason
+    if (LButton.Action = FAction) or (LButton.Name = 'Vi4DBtn') or (LButton = FButton) or (LButton.Hint = BUTTON_HINT) then
     begin
       AToolbar.Perform(CM_CONTROLCHANGE, wParam(LButton), 0);
       FreeAndNil(LButton);
