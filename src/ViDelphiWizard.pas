@@ -194,8 +194,10 @@ end;
 procedure TVi4DWizard.BeforeDestruction;
 begin
   inherited;
-  FEvents.Free;
+  FEvents.OnMessage := nil;
   FViEngine.Free;
+  FEvents.Free;
+  RemoveActionFromAllToolbars;
 end;
 
 constructor TVi4DWizard.Create;
@@ -209,7 +211,6 @@ end;
 
 destructor TVi4DWizard.Destroy;
 begin
-  RemoveActionFromAllToolbars;
   FreeAndNil(FAction);
   inherited;
 end;
@@ -275,9 +276,12 @@ end;
 procedure TVi4DWizard.RemoveActionFromAllToolbars;
 var
   LService: INTAServices;
+  aToolbar: TToolBar;
 begin
   if Supports(BorlandIDEServices, INTAServices, LService) then
   begin
+    aToolbar := LService.ToolBar[sCustomToolBar];
+    aToolbar.OnCustomDrawButton := nil; // or we get invalid pointer operations during destroy
     RemoveActionFromToolbar(FAction, LService.ToolBar[sCustomToolBar]);
     RemoveActionFromToolbar(FAction, LService.ToolBar[sDesktopToolBar]);
     RemoveActionFromToolbar(FAction, LService.ToolBar[sStandardToolBar]);
@@ -295,7 +299,7 @@ begin
   for i := AToolbar.ButtonCount - 1 downto 0 do
   begin
     LButton := AToolbar.Buttons[i];
-    if (LButton.Action = FAction) or (LButton.Name = 'Vi4DBtn') or (LButton = FButton) then
+    if (LButton.Action = FAction) or (LButton = FButton) then
     begin
       AToolbar.Perform(CM_CONTROLCHANGE, wParam(LButton), 0);
       FreeAndNil(LButton);
