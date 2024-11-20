@@ -1,4 +1,4 @@
-unit Commands.Editing;
+unit Commands.Edition;
 
 interface
 
@@ -8,102 +8,102 @@ uses
   ToolsAPI;
 
 type
-  TViEditC = class(TViCommand)
+  TEdition = class(TCommand)
   public
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); virtual;
   end;
 
-  TViEditCClass = class of TViEditC;
+  TEditionClass = class of TEdition;
 
-  TViECAppend = class(TViEditC)
+  TEditionAppend = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECAppendEOL = class(TViEditC)
+  TEditionAppendEOL = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECInsert = class(TViEditC)
+  TEditionInsert = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECInsertBOL = class(TViEditC)
+  TEditionInsertBOL = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECNextLine = class(TViEditC)
+  TEditionNextLine = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECPreviousLine = class(TViEditC)
+  TEditionPreviousLine = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECDeleteCharInsert = class(TViEditC)
+  TEditionDeleteCharInsert = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECDeleteLineInsert = class(TViEditC)
+  TEditionDeleteLineInsert = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECDeleteTilEOL = class(TViEditC)
+  TEditionDeleteTilEOL = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECChangeTilEOL = class(TViEditC)
+  TEditionChangeTilEOL = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECReplaceChar = class(TViEditC)
+  TEditionReplaceChar = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECReplaceMode = class(TViEditC)
+  TEditionReplaceMode = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECUndo = class(TViEditC)
+  TEditionUndo = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECRedo = class(TViEditC)
+  TEditionRedo = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECDeleteCharacter = class(TViEditC)
+  TEditionDeleteCharacter = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECDeletePreviousCharacter = class(TViEditC)
+  TEditionDeletePreviousCharacter = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECPaste = class(TViEditC)
+  TEditionPaste = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECPasteBefore = class(TViEditC)
+  TEditionPasteBefore = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECJoinLines = class(TViEditC)
+  TEditionJoinLines = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECRepeatLastCommand = class(TViEditC)
+  TEditionRepeatLastCommand = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECToggleCase = class(TViEditC)
+  TEditionToggleCase = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECSaveFile = class(TViEditC)
+  TEditionSaveFile = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TViECCloseFile = class(TViEditC)
+  TEditionCloseFile = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
@@ -112,7 +112,7 @@ implementation
 uses
   SysUtils,
   NavUtils,
-  Commands.Navigation,
+  Commands.Motion,
   Commands.Operators;
 
 procedure Paste(aClipboard: TClipboard; const AEditPosition: IOTAEditPosition; ADirection: TDirection);
@@ -164,41 +164,41 @@ begin
   end;
 end;
 
-{ TViEditC }
+{ TEdition }
 
-procedure TViEditC.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEdition.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set to call to TViEditC.Execute');
+    Raise Exception.Create('aCursorPosition must be set to call to TEdition.Execute');
 end;
 
-{ TViECDeleteCharacter }
+{ TEditionDeleteCharacter }
 
-procedure TViECDeleteCharacter.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionDeleteCharacter.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   aCursorPosition.Delete(aCount);
 end;
 
-{ TViECReplaceChar }
+{ TEditionReplaceChar }
 
-procedure TViECReplaceChar.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionReplaceChar.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
-  aViECDeleteCharInsert: TViECDeleteCharInsert;
+  aEditionDeleteCharInsert: TEditionDeleteCharInsert;
 begin
   inherited;
-  aViECDeleteCharInsert := TViECDeleteCharInsert.Create(FClipboard, FViEngine);
+  aEditionDeleteCharInsert := TEditionDeleteCharInsert.Create(FClipboard, FEngine);
   try
-    aViECDeleteCharInsert.Execute(aCursorPosition, aCount);
+    aEditionDeleteCharInsert.Execute(aCursorPosition, aCount);
     // todo: somehow this needs to go back to normal mode after entering x characters
   finally
-    aViECDeleteCharInsert.Free;
+    aEditionDeleteCharInsert.Free;
   end;
 end;
 
-{ TViECUndo }
+{ TEditionUndo }
 
-procedure TViECUndo.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionUndo.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
 begin
@@ -208,172 +208,172 @@ begin
   aBuffer.Undo;
 end;
 
-{ TViECInsert }
+{ TEditionInsert }
 
-procedure TViECInsert.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionInsert.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
-  FViEngine.currentViMode := mInsert;
+  FEngine.currentViMode := mInsert;
 end;
 
-{ TViECChangeTilEOL }
+{ TEditionChangeTilEOL }
 
-procedure TViECChangeTilEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionChangeTilEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
-  aViECDeleteTilEOL: TViECDeleteTilEOL;
+  aEditionDeleteTilEOL: TEditionDeleteTilEOL;
 begin
   inherited;
 
-  aViECDeleteTilEOL := TViECDeleteTilEOL.Create(FClipboard, FViEngine);
+  aEditionDeleteTilEOL := TEditionDeleteTilEOL.Create(FClipboard, FEngine);
   try
-    aViECDeleteTilEOL.Execute(aCursorPosition, aCount);
-    FViEngine.currentViMode := mInsert;
+    aEditionDeleteTilEOL.Execute(aCursorPosition, aCount);
+    FEngine.currentViMode := mInsert;
   finally
-    aViECDeleteTilEOL.Free;
+    aEditionDeleteTilEOL.Free;
   end;
 end;
 
-{ TViECDeleteCharInsert }
+{ TEditionDeleteCharInsert }
 
-procedure TViECDeleteCharInsert.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionDeleteCharInsert.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   aCursorPosition.Delete(aCount);
-  FViEngine.currentViMode := mInsert;
+  FEngine.currentViMode := mInsert;
 end;
 
-{ TViECDeleteTilEOL }
+{ TEditionDeleteTilEOL }
 
-procedure TViECDeleteTilEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionDeleteTilEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   lPos: TOTAEditPos;
   aNavigationMotion: INavigationMotion;
-  aViNCTrueEndOfLine: TViNCTrueEndOfLine;
+  aMotionTrueEndOfLine: TMotionTrueEOL;
 begin
   inherited;
 
-  aViNCTrueEndOfLine := TViNCTrueEndOfLine.Create(FClipboard, FViEngine);
+  aMotionTrueEndOfLine := TMotionTrueEOL.Create(FClipboard, FEngine);
   try
-    if not Supports(aViNCTrueEndOfLine, INavigationMotion, aNavigationMotion) then
+    if not Supports(aMotionTrueEndOfLine, INavigationMotion, aNavigationMotion) then
       Exit;
 
     lPos := GetPositionForMove(aCursorPosition, aNavigationMotion, true, aCount);
     ApplyActionToSelection(aCursorPosition, baDelete, false, lPos);
   finally
-    aViNCTrueEndOfLine.Free;
+    aMotionTrueEndOfLine.Free;
   end;
 end;
 
-{ TViECAppend }
+{ TEditionAppend }
 
-procedure TViECAppend.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionAppend.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   aCursorPosition.MoveRelative(0, 1);
-  FViEngine.currentViMode := mInsert;
+  FEngine.currentViMode := mInsert;
 end;
 
-{ TViECPreviousLine }
+{ TEditionPreviousLine }
 
-procedure TViECPreviousLine.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionPreviousLine.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   aCursorPosition.MoveBOL;
   aCursorPosition.InsertText(#13#10);
   aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight);
   aCursorPosition.MoveRelative(-1, 0);
-  FViEngine.currentViMode := mInsert;
+  FEngine.currentViMode := mInsert;
 end;
 
-{ TViECReplaceMode }
+{ TEditionReplaceMode }
 
-procedure TViECReplaceMode.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionReplaceMode.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
 begin
   inherited;
   aBuffer := GetEditBuffer;
   aBuffer.BufferOptions.InsertMode := False;
-  FViEngine.currentViMode := mInsert;
+  FEngine.currentViMode := mInsert;
 end;
 
-{ TViECAppendEOL }
+{ TEditionAppendEOL }
 
-procedure TViECAppendEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionAppendEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   aCursorPosition.MoveEOL;
-  FViEngine.currentViMode := mInsert;
+  FEngine.currentViMode := mInsert;
 end;
 
-{ TViECNextLine }
+{ TEditionNextLine }
 
-procedure TViECNextLine.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionNextLine.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   aCursorPosition.MoveEOL;
   aCursorPosition.InsertText(#13#10);
   aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight);
-  FViEngine.currentViMode := mInsert;
+  FEngine.currentViMode := mInsert;
 end;
 
-{ TViECPaste }
+{ TEditionPaste }
 
-procedure TViECPaste.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionPaste.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   Paste(FClipboard, aCursorPosition, dForward);
 end;
 
-{ TViECDeleteLineInsert }
+{ TEditionDeleteLineInsert }
 
-procedure TViECDeleteLineInsert.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionDeleteLineInsert.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
-  aViECDeleteTilEOLInsert: TViECChangeTilEOL;
+  aEditionChangeTilEOL: TEditionChangeTilEOL;
 begin
   inherited;
   aCursorPosition.MoveBOL;
 
-  aViECDeleteTilEOLInsert := TViECChangeTilEOL.Create(FClipboard, FViEngine);
+  aEditionChangeTilEOL := TEditionChangeTilEOL.Create(FClipboard, FEngine);
   try
-    aViECDeleteTilEOLInsert.Execute(aCursorPosition, aCount);
+    aEditionChangeTilEOL.Execute(aCursorPosition, aCount);
   finally
-    aViECDeleteTilEOLInsert.Free;
+    aEditionChangeTilEOL.Free;
   end;
 end;
 
-{ TViECPasteBefore }
+{ TEditionPasteBefore }
 
-procedure TViECPasteBefore.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionPasteBefore.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   Paste(FClipboard, aCursorPosition, dBack);
 end;
 
-{ TViECInsertBOL }
+{ TEditionInsertBOL }
 
-procedure TViECInsertBOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionInsertBOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
-  aViNCStartOfLineAfterWhiteSpace: TViNCStartOfLineAfterWhiteSpace;
+  aMotionStartOfLineAfterWhiteSpace: TMotionBOLAfterWhiteSpace;
 begin
   inherited;
 
-  aViNCStartOfLineAfterWhiteSpace := TViNCStartOfLineAfterWhiteSpace.Create(FClipboard, FViEngine);
+  aMotionStartOfLineAfterWhiteSpace := TMotionBOLAfterWhiteSpace.Create(FClipboard, FEngine);
   try
-    aViNCStartOfLineAfterWhiteSpace.Move(aCursorPosition, aCount, true);
-    FViEngine.currentViMode := mInsert;
+    aMotionStartOfLineAfterWhiteSpace.Move(aCursorPosition, aCount, true);
+    FEngine.currentViMode := mInsert;
   finally
-    aViNCStartOfLineAfterWhiteSpace.Free;
+    aMotionStartOfLineAfterWhiteSpace.Free;
   end;
 end;
 
-{ TViECJoinLines }
+{ TEditionJoinLines }
 
-procedure TViECJoinLines.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionJoinLines.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   i: Integer;
   lPos: TOTAEditPos;
-  aViTOCWord: TViTOCWord;
+  aMotionWord: TMotionWord;
 begin
   inherited;
 
@@ -384,12 +384,12 @@ begin
 
     if aCursorPosition.IsWhiteSpace and (CharAtRelativeLocation(aCursorPosition, 1) = viWhiteSpace) then
     begin
-      aViTOCWord := TViTOCWord.Create(FClipboard, FViEngine);
+      aMotionWord := TMotionWord.Create(FClipboard, FEngine);
       try
-        lPos := GetPositionForMove(aCursorPosition, aViTOCWord, true, 1);
+        lPos := GetPositionForMove(aCursorPosition, aMotionWord, true, 1);
         ApplyActionToSelection(aCursorPosition, baDelete, false, lPos);
       finally
-        aViTOCWord.Free;
+        aMotionWord.Free;
       end;
     end;
 
@@ -398,26 +398,26 @@ begin
   end;
 end;
 
-{ TViECDeletePreviousCharacter }
+{ TEditionDeletePreviousCharacter }
 
-procedure TViECDeletePreviousCharacter.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionDeletePreviousCharacter.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
   aCursorPosition.MoveRelative(0, -aCount);
   aCursorPosition.Delete(aCount);
 end;
 
-{ TViECRepeatLastCommand }
+{ TEditionRepeatLastCommand }
 
-procedure TViECRepeatLastCommand.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionRepeatLastCommand.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
-  FViEngine.ExecuteLastCommand;
+  FEngine.ExecuteLastCommand;
 end;
 
-{ TViOCToggleCase }
+{ TEditionToggleCase }
 
-procedure TViECToggleCase.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionToggleCase.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
   LSelection: IOTAEditBlock;
@@ -432,9 +432,9 @@ begin
   LSelection.EndBlock;
 end;
 
-{ TViECSaveFile }
+{ TEditionSaveFile }
 
-procedure TViECSaveFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionSaveFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
 begin
@@ -445,9 +445,9 @@ begin
     aBuffer.Module.Save(False, True);
 end;
 
-{ TViECCloseFile }
+{ TEditionCloseFile }
 
-procedure TViECCloseFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionCloseFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
 begin
@@ -461,9 +461,9 @@ begin
   aBuffer.Module.CloseModule(False);
 end;
 
-{ TViECRedo }
+{ TEditionRedo }
 
-procedure TViECRedo.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+procedure TEditionRedo.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
 begin

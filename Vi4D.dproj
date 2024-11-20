@@ -62,16 +62,16 @@
 			</DelphiCompile>
 			<DCCReference Include="rtl.dcp"/>
 			<DCCReference Include="designide.dcp"/>
-			<DCCReference Include="src\Commands.Navigation.pas"/>
-			<DCCReference Include="src\ViDelphiWizard.pas"/>
-			<DCCReference Include="src\ViEngine.pas"/>
+			<DCCReference Include="src\Commands.Motion.pas"/>
+			<DCCReference Include="src\Vi4DWizard.pas"/>
+			<DCCReference Include="src\Engine.pas"/>
 			<DCCReference Include="src\Commands.Operators.pas"/>
 			<DCCReference Include="src\Commands.Base.pas"/>
-			<DCCReference Include="src\ViOperation.pas"/>
+			<DCCReference Include="src\Operation.pas"/>
 			<DCCReference Include="src\NavUtils.pas"/>
 			<DCCReference Include="src\Clipboard.pas"/>
-			<DCCReference Include="src\Commands.Editing.pas"/>
-			<DCCReference Include="src\Commands.Navigation.InsideAround.pas"/>
+			<DCCReference Include="src\Commands.Edition.pas"/>
+			<DCCReference Include="src\Commands.IAMotion.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

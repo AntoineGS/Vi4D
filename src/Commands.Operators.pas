@@ -8,9 +8,9 @@ uses
   Clipboard;
 
 type
-  TViCharClass = (viWhiteSpace, viWord, viSpecial);
+  TCharClass = (viWhiteSpace, viWord, viSpecial);
 
-  TViOperatorC = class(TViCommand)
+  TOperator = class(TCommand)
   protected
     function GetBlockAction: TBlockAction; virtual;
   public
@@ -19,54 +19,54 @@ type
     property BlockAction: TBlockAction read GetBlockAction;
   end;
 
-  TViOperatorCClass = class of TViOperatorC;
+  TOperatorClass = class of TOperator;
 
   INavigationMotion = interface
   ['{D71A2796-A08C-46E5-8396-A28034A778D5}']
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
     function DefaultCount: integer;
     // todo: should probably remove this in favor of having the two interfaces or inherit from the below
-    procedure Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TViOperatorC; aCount: integer);
+    procedure Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TOperator; aCount: integer);
   end;
 
-  TViOCDelete = class(TViOperatorC)
+  TOperatorDelete = class(TOperator)
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
   end;
 
-  TViOCYank = class(TViOperatorC)
+  TOperatorYank = class(TOperator)
     function GetBlockAction: TBlockAction; override;
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
   end;
 
-  TViOCChange = class(TViOperatorC)
+  TOperatorChange = class(TOperator)
     function GetBlockAction: TBlockAction; override;
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
   end;
 
-  TViOCIndentRight = class(TViOperatorC)
+  TOperatorIndentRight = class(TOperator)
     function GetBlockAction: TBlockAction; override;
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
   end;
 
-  TViOCIndentLeft = class(TViOperatorC)
+  TOperatorIndentLeft = class(TOperator)
     function GetBlockAction: TBlockAction; override;
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
   end;
 
-  TViOCAutoIndent = class(TViOperatorC)
+  TOperatorAutoIndent = class(TOperator)
   end;
 
-  TViOCUppercase = class(TViOperatorC)
+  TOperatorUppercase = class(TOperator)
     function GetBlockAction: TBlockAction; override;
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
   end;
 
-  TViOCLowercase = class(TViOperatorC)
+  TOperatorLowercase = class(TOperator)
     function GetBlockAction: TBlockAction; override;
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
   end;
 
-  function CharAtRelativeLocation(aCursorPosition: IOTAEditPosition; ACol: Integer): TViCharClass;
+  function CharAtRelativeLocation(aCursorPosition: IOTAEditPosition; ACol: Integer): TCharClass;
   function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: INavigationMotion; forEdition: boolean;
       ACount: Integer = 1; fullLines: boolean = false): TOTAEditPos;
 
@@ -75,7 +75,7 @@ implementation
 uses
   SysUtils,
   NavUtils,
-  Commands.Editing;
+  Commands.Edition;
 
 function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: INavigationMotion; forEdition: boolean;
     ACount: Integer = 1; fullLines: boolean = false): TOTAEditPos;
@@ -110,7 +110,7 @@ begin
   result := LPos;
 end;
 
-function CharAtRelativeLocation(aCursorPosition: IOTAEditPosition; ACol: Integer): TViCharClass;
+function CharAtRelativeLocation(aCursorPosition: IOTAEditPosition; ACol: Integer): TCharClass;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to CharAtRelativeLocation');
@@ -128,26 +128,26 @@ begin
   aCursorPosition.Restore;
 end;
 
-procedure TViOperatorC.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperator.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set to call to TViOperatorC.Execute');
 end;
 
-{ TViOCYank }
+{ TOperatorYank }
 
-procedure TViOCYank.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorYank.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 begin
   inherited;
   ApplyActionToSelection(aCursorPosition, baYank, True, lPos);
 end;
 
-function TViOCYank.GetBlockAction: TBlockAction;
+function TOperatorYank.GetBlockAction: TBlockAction;
 begin
   result := baYank;
 end;
 
-procedure TViOCDelete.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorDelete.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 begin
   inherited;
 
@@ -157,80 +157,80 @@ begin
   ApplyActionToSelection(aCursorPosition, baDelete, True, lPos);
 end;
 
-function TViOperatorC.GetBlockAction: TBlockAction;
+function TOperator.GetBlockAction: TBlockAction;
 begin
   result := baDelete;
 end;
 
-{ TViOCChange }
+{ TOperatorChange }
 
-procedure TViOCChange.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorChange.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 var
-  aViECPreviousLine: TViECPreviousLine;
+  aEditionPreviousLine: TEditionPreviousLine;
 begin
   inherited;
   ApplyActionToSelection(aCursorPosition, baDelete, True, lPos);
-  aViECPreviousLine := TViECPreviousLine.Create(FClipboard, FViEngine);
+  aEditionPreviousLine := TEditionPreviousLine.Create(FClipboard, FEngine);
   try
-    aViECPreviousLine.Execute(aCursorPosition, 1);
+    aEditionPreviousLine.Execute(aCursorPosition, 1);
   finally
-    aViECPreviousLine.Free;
+    aEditionPreviousLine.Free;
   end;
 end;
 
-function TViOCChange.GetBlockAction: TBlockAction;
+function TOperatorChange.GetBlockAction: TBlockAction;
 begin
   result := baChange;
 end;
 
-{ TViOCIndentLeft }
+{ TOperatorIndentLeft }
 
-procedure TViOCIndentLeft.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorIndentLeft.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 begin
   inherited;
   ChangeIndentation(aCursorPosition, dBack);
 end;
 
-function TViOCIndentLeft.GetBlockAction: TBlockAction;
+function TOperatorIndentLeft.GetBlockAction: TBlockAction;
 begin
   result := baIndentLeft;
 end;
 
-{ TViOCIndentRight }
+{ TOperatorIndentRight }
 
-procedure TViOCIndentRight.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorIndentRight.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 begin
   inherited;
   ChangeIndentation(aCursorPosition, dForward);
 end;
 
-function TViOCIndentRight.GetBlockAction: TBlockAction;
+function TOperatorIndentRight.GetBlockAction: TBlockAction;
 begin
   result := baIndentRight;
 end;
 
-{ TViOCUppercase }
+{ TOperatorUppercase }
 
-procedure TViOCUppercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorUppercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 begin
   inherited;
   ApplyActionToSelection(aCursorPosition, baUppercase, True, lPos);
 end;
 
-function TViOCUppercase.GetBlockAction: TBlockAction;
+function TOperatorUppercase.GetBlockAction: TBlockAction;
 begin
   result := baUppercase;
 end;
 
-{ TViOCLowercase }
+{ TOperatorLowercase }
 
-procedure TViOCLowercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorLowercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
 begin
   inherited;
   ApplyActionToSelection(aCursorPosition, baLowercase, True, lPos);
 end;
 
-function TViOCLowercase.GetBlockAction: TBlockAction;
+function TOperatorLowercase.GetBlockAction: TBlockAction;
 begin
   result := baLowercase;
 end;

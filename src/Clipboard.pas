@@ -3,7 +3,7 @@ unit Clipboard;
 interface
 
 type
-  TViRegister = record
+  TRegister = record
   public
     IsLine: Boolean;
     Text: String;
@@ -11,10 +11,10 @@ type
 
   TClipboard = class
   private
-    FRegisterArray: array [0 .. 255] of TViRegister;
+    FRegisterArray: array [0 .. 255] of TRegister;
     FSelectedRegister: Integer;
   public
-    function CurrentRegister: TViRegister;
+    function CurrentRegister: TRegister;
     procedure SetCurrentRegisterIsLine(aValue: boolean);
     procedure SetCurrentRegisterText(aValue: string);
   end;
@@ -23,7 +23,7 @@ implementation
 
 { TClipboard }
 
-function TClipboard.CurrentRegister: TViRegister;
+function TClipboard.CurrentRegister: TRegister;
 begin
   //todo: this could yield an out of bounds
   result := FRegisterArray[FSelectedRegister];

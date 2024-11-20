@@ -1,4 +1,4 @@
-unit ViOperation;
+unit Operation;
 
 interface
 
@@ -6,8 +6,8 @@ uses
   Generics.Collections,
   Commands.Base,
   Commands.Operators,
-  Commands.Navigation,
-  Commands.Editing,
+  Commands.Motion,
+  Commands.Edition,
   SysUtils,
   ToolsAPI,
   Clipboard;
@@ -15,13 +15,13 @@ uses
 type
   TCommandChangedProc = reference to procedure(aCommand: String);
 
-  TViOperation = class
+  TOperation = class
   private
     FCommandToMatch: string; // to allow multi-character actions like gg, gU, etc.
-    FOperator: TViOperatorC;
-    FMotion: TViCommand;
+    FOperator: TOperator;
+    FMotion: TCommand;
     FCount: integer; // could be `i` or `a` instead
-    FViEngine: IViEngine;
+    FEngine: IEngine;
     FClipboard: TClipboard;
     FCountSet: boolean;
     FCommand: string;
@@ -30,12 +30,12 @@ type
     procedure SetOnCommandChanged(aProc: TCommandChangedProc);
     procedure SetCommand(aCommand: string);
   public
-    constructor Create(aViEngine: IViEngine; aClipboard: TClipboard);
+    constructor Create(aEngine: IEngine; aClipboard: TClipboard);
     destructor Destroy; override;
-    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViOperatorCClass: TViOperatorCClass); overload;
-    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViNavigationCClass: TViNavigationCClass;
+    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aOperatorClass: TOperatorClass); overload;
+    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aMotionClass: TMotionClass;
         searchToken: string = ''); overload;
-    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViEditCClass: TViEditCClass); overload;
+    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aEditionClass: TEditionClass); overload;
 
     procedure AddToCommandToMatch(const aString: string);
     procedure ClearCommandToMatch;
@@ -45,13 +45,13 @@ type
     function Count(default: integer = 1): integer;
     property CommandToMatch: string read FCommandToMatch;
     property LastCommand: string read FLastCommand;
-    property OperatorCommand: TViOperatorC read FOperator;
+    property OperatorCommand: TOperator read FOperator;
     property onCommandChanged: TCommandChangedProc write SetOnCommandChanged;
   end;
 
 implementation
 
-function TViOperation.TryAddToCount(const aString: string): boolean;
+function TOperation.TryAddToCount(const aString: string): boolean;
 var
   aChar: Char;
 begin
@@ -70,13 +70,13 @@ begin
   result := True;
 end;
 
-procedure TViOperation.AddToCommandToMatch(const aString: string);
+procedure TOperation.AddToCommandToMatch(const aString: string);
 begin
   FCommandToMatch := FCommandToMatch + aString;
   SetCommand(FCommand + aString);
 end;
 
-procedure TViOperation.AddToCount(aValue: Integer);
+procedure TOperation.AddToCount(aValue: Integer);
 begin
   if not FCountSet then
     FCount := aValue
@@ -86,12 +86,12 @@ begin
   FCountSet := True;
 end;
 
-procedure TViOperation.ClearCommandToMatch;
+procedure TOperation.ClearCommandToMatch;
 begin
   FCommandToMatch := '';
 end;
 
-function TViOperation.Count(default: integer): integer;
+function TOperation.Count(default: integer): integer;
 begin
   if FCountSet then
     result := FCount
@@ -99,26 +99,26 @@ begin
     result := default;
 end;
 
-constructor TViOperation.Create(aViEngine: IViEngine; aClipboard: TClipboard);
+constructor TOperation.Create(aEngine: IEngine; aClipboard: TClipboard);
 begin
-  if aViEngine = nil then
-    Raise Exception.Create('aViEngine must be set in call to TViOperation.Create');
+  if aEngine = nil then
+    Raise Exception.Create('aEngine must be set in call to TOperation.Create');
 
   if aClipboard = nil then
-    Raise Exception.Create('aClipboard must be set in call to TViOperation.Create');
+    Raise Exception.Create('aClipboard must be set in call to TOperation.Create');
 
-  FViEngine := aViEngine;
+  FEngine := aEngine;
   FClipboard := aClipboard;
 
   Reset(false);
 end;
 
-destructor TViOperation.Destroy;
+destructor TOperation.Destroy;
 begin
   Reset(false);
 end;
 
-procedure TViOperation.SetCommand(aCommand: string);
+procedure TOperation.SetCommand(aCommand: string);
 begin
   FCommand := aCommand;
 
@@ -126,67 +126,67 @@ begin
     FCommandChangedProc(aCommand);
 end;
 
-procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViOperatorCClass: TViOperatorCClass);
+procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aOperatorClass: TOperatorClass);
 var
-  aViOperatorC: TViOperatorC;
-  aViNCDown: TViNCDown;
+  aOperator: TOperator;
+  aMotionDown: TMotionDown;
   lpos: TOTAEditPos;
 begin
-  if aViOperatorCClass = nil then
-    Raise Exception.Create('aViOperatorCClass must be set in call to SetAndExecuteIfComplete');
+  if aOperatorClass = nil then
+    Raise Exception.Create('aOperatorCClass must be set in call to SetAndExecuteIfComplete');
 
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
 
-  aViNCDown := nil;
-  aViOperatorC := aViOperatorCClass.Create(FClipboard, FViEngine);
+  aMotionDown := nil;
+  aOperator := aOperatorClass.Create(FClipboard, FEngine);
   try
     if FOperator = nil then
     begin
-      FOperator := aViOperatorC;
-      aViOperatorC := nil;
+      FOperator := aOperator;
+      aOperator := nil;
       exit;
     end;
 
     // line-level operation, like dd or yy
-    if FOperator.ClassType = aViOperatorC.ClassType then
+    if FOperator.ClassType = aOperator.ClassType then
     begin
       // go to BOL, then select whole line using Down, then execute and pass the selection
       aCursorPosition.MoveBOL;
-      aViNCDown := TViNCDown.Create(FClipboard, FViEngine);
-      lpos := GetPositionForMove(aCursorPosition, aViNCDown, true, FCount);
+      aMotionDown := TMotionDown.Create(FClipboard, FEngine);
+      lpos := GetPositionForMove(aCursorPosition, aMotionDown, true, FCount);
       FOperator.Execute(aCursorPosition, lpos);
     end;
   finally
-    aViOperatorC.Free;
-    aViNCDown.Free;
+    aOperator.Free;
+    aMotionDown.Free;
   end;
 
   Reset(true);
 end;
 
-procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViNavigationCClass: TViNavigationCClass;
+procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aMotionClass: TMotionClass;
     searchToken: string = '');
 var
-  aNormalMotion: INavigationMotion;
+  aNavigationMotion: INavigationMotion;
   aSearchMotion: ISearchMotion;
   aEditionMotion: IEditionMotion;
 begin
-  if aViNavigationCClass = nil then
-    Raise Exception.Create('aViNavigationCClass must be set in call to SetAndExecuteIfComplete');
+  if aMotionClass = nil then
+    Raise Exception.Create('aNavigationCClass must be set in call to SetAndExecuteIfComplete');
 
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
 
   if FMotion = nil then
   begin
-    FMotion := aViNavigationCClass.Create(FClipboard, FViEngine);
+    FMotion := aMotionClass.Create(FClipboard, FEngine);
 
     if Supports(FMotion, ISearchMotion, aSearchMotion) then
       aSearchMotion.SearchToken := searchToken;
 
-    if Supports(FMotion, INavigationMotion, aNormalMotion) then
-      aNormalMotion.Execute(aCursorPosition, FOperator, Count(aNormalMotion.DefaultCount));
+    if Supports(FMotion, INavigationMotion, aNavigationMotion) then
+      aNavigationMotion.Execute(aCursorPosition, FOperator, Count(aNavigationMotion.DefaultCount));
 
     if Supports(FMotion, IEditionMotion, aEditionMotion) then
       aEditionMotion.Execute(aCursorPosition, FOperator, 0);
@@ -195,32 +195,32 @@ begin
   Reset(FOperator <> nil);
 end;
 
-procedure TViOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aViEditCClass: TViEditCClass);
+procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aEditionClass: TEditionClass);
 var
-  aEditCommand: TViEditC;
+  aEdition: TEdition;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
 
-  if aViEditCClass = nil then
-    Raise Exception.Create('aViEditCClass must be set in call to SetAndExecuteIfComplete');
+  if aEditionClass = nil then
+    Raise Exception.Create('aEditCClass must be set in call to SetAndExecuteIfComplete');
 
-  aEditCommand := aViEditCClass.Create(FClipboard, FViEngine);
+  aEdition := aEditionClass.Create(FClipboard, FEngine);
   try
-    aEditCommand.Execute(aCursorPosition, FCount);
+    aEdition.Execute(aCursorPosition, FCount);
   finally
-    aEditCommand.Free;
+    aEdition.Free;
   end;
 
   Reset(false);
 end;
 
-procedure TViOperation.SetOnCommandChanged(aProc: TCommandChangedProc);
+procedure TOperation.SetOnCommandChanged(aProc: TCommandChangedProc);
 begin
   FCommandChangedProc := aProc;
 end;
 
-procedure TViOperation.Reset(saveLastOperation: boolean);
+procedure TOperation.Reset(saveLastOperation: boolean);
 begin
   if saveLastOperation and (FCommand <> '.') and (FCommand <> '') then
     FLastCommand := FCommand;

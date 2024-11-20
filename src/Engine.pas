@@ -19,7 +19,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
-unit ViEngine;
+unit Engine;
 
 interface
 
@@ -29,32 +29,32 @@ uses
   Generics.Defaults,
   Windows,
   Commands.Base,
-  Commands.Navigation,
+  Commands.Motion,
   Commands.Operators,
-  Commands.Editing,
-  ViOperation,
+  Commands.Edition,
+  Operation,
   Clipboard,
   AppEvnts;
 
 type
   TCaptionChangeProc = reference to procedure(aCaption: String);
 
-  TViEngine = class(TSingletonImplementation, IViEngine)
+  TEngine = class(TSingletonImplementation, IEngine)
   private
     FCurrentViMode: TViMode;
     FCurrentCommandForCaption: string;
     FShiftState: TShiftState;
-    FCurrentOperation: TViOperation;
+    FCurrentOperation: TOperation;
     FOnCaptionChanged: TCaptionChangeProc; // called when Vi Mode is changed
-    FViOperatorBindings: TDictionary<string, TViOperatorCClass>;
-    FViNavigationBindings: TDictionary<string, TViNavigationCClass>;
-    FViEditBindings: TDictionary<string, TViEditCClass>;
+    FOperatorBindings: TDictionary<string, TOperatorClass>;
+    FMotionBindings: TDictionary<string, TMotionClass>;
+    FEditionBindings: TDictionary<string, TEditionClass>;
     FClipboard: TClipboard;
     FUpdateActionCaption: boolean;
     FEvents: TApplicationEvents;
     //FMarkArray: array [0 .. 255] of TOTAEditPos;
 
-    procedure FillViBindings;
+    procedure FillBindings;
     procedure HandleChar(const AChar: Char);
     procedure ResetCurrentOperation;
     procedure ExecuteLastCommand;
@@ -100,38 +100,38 @@ begin
     result := Format('%s - %s', [result, command]);
 end;
 
-procedure TViEngine.OnCommandChanged(aCommand: string);
+procedure TEngine.OnCommandChanged(aCommand: string);
 begin
   FCurrentCommandForCaption := aCommand;
   FUpdateActionCaption := True;
 end;
 
-constructor TViEngine.Create;
+constructor TEngine.Create;
 begin
   currentViMode := mNormal;
-  FViOperatorBindings := TDictionary<string, TViOperatorCClass>.Create;
-  FViNavigationBindings := TDictionary<string, TViNavigationCClass>.Create;
-  FViEditBindings := TDictionary<string, TViEditCClass>.Create;
+  FOperatorBindings := TDictionary<string, TOperatorClass>.Create;
+  FMotionBindings := TDictionary<string, TMotionClass>.Create;
+  FEditionBindings := TDictionary<string, TEditionClass>.Create;
   FClipboard := TClipboard.Create;
-  FCurrentOperation := TViOperation.Create(self, FClipboard);
+  FCurrentOperation := TOperation.Create(self, FClipboard);
   FCurrentOperation.onCommandChanged := OnCommandChanged;
   FEvents := TApplicationEvents.Create(nil);
   FEvents.OnIdle := DoApplicationIdle;
-  FillViBindings;
+  FillBindings;
 end;
 
-destructor TViEngine.Destroy;
+destructor TEngine.Destroy;
 begin
   FEvents.Free;
   FCurrentOperation.Free;
   FClipboard.Free;
-  FViEditBindings.Free;
-  FViNavigationBindings.Free;
-  FViOperatorBindings.Free;
+  FEditionBindings.Free;
+  FMotionBindings.Free;
+  FOperatorBindings.Free;
   inherited;
 end;
 
-procedure TViEngine.ConfigureCursor;
+procedure TEngine.ConfigureCursor;
 var
   LEditBuffer: IOTAEditBuffer;
 begin
@@ -141,7 +141,7 @@ begin
     LEditBuffer.EditOptions.UseBriefCursorShapes := (currentViMode = mNormal) or (currentViMode = mVisual);
 end;
 
-procedure TViEngine.EditChar(AKey, AScanCode: Word; AShift: TShiftState; AMsg: TMsg; var AHandled: Boolean);
+procedure TEngine.EditChar(AKey, AScanCode: Word; AShift: TShiftState; AMsg: TMsg; var AHandled: Boolean);
 begin
   if currentViMode in [mInactive, mInsert] then
     Exit;
@@ -152,7 +152,7 @@ begin
   (BorlandIDEServices as IOTAEditorServices).TopView.Paint;
 end;
 
-procedure TViEngine.EditKeyDown(AKey, AScanCode: Word; AShift: TShiftState; AMsg: TMsg; var AHandled: Boolean);
+procedure TEngine.EditKeyDown(AKey, AScanCode: Word; AShift: TShiftState; AMsg: TMsg; var AHandled: Boolean);
 var
   LIsLetter, LIsSymbol: Boolean;
 
@@ -183,7 +183,7 @@ begin
           // If the keydown is a standard keyboard press not altered with a ctrl
           // or alt key then create a WM_CHAR message so we can do all the
           // locale mapping of the keyboard and then handle the resulting key in
-          // TViBindings.EditChar.
+          // EditChar.
           // XXX can we switch to using ToAscii like we do for setting FInsertText
           TranslateMessage(AMsg);
           AHandled := True;
@@ -207,7 +207,7 @@ begin
   end;
 end;
 
-procedure TViEngine.ExecuteLastCommand;
+procedure TEngine.ExecuteLastCommand;
 var
   aChar: Char;
 begin
@@ -217,13 +217,13 @@ begin
     HandleChar(aChar);
 end;
 
-procedure TViEngine.ResetCurrentOperation;
+procedure TEngine.ResetCurrentOperation;
 begin
   currentViMode := mNormal;
   FCurrentOperation.Reset(false);
 end;
 
-procedure TViEngine.DoApplicationIdle(Sender: TObject; var Done: Boolean);
+procedure TEngine.DoApplicationIdle(Sender: TObject; var Done: Boolean);
 begin
   if FUpdateActionCaption then
   begin
@@ -232,11 +232,11 @@ begin
   end;
 end;
 
-procedure TViEngine.HandleChar(const AChar: Char);
+procedure TEngine.HandleChar(const AChar: Char);
 var
-  aViOperatorCClass: TViOperatorCClass;
-  aViNavigationCClass: TViNavigationCClass;
-  aViEditCClass: TViEditCClass;
+  aOperatorClass: TOperatorClass;
+  aMotionClass: TMotionClass;
+  aEditionClass: TEditionClass;
   commandToMatch: string;
   keepChar: boolean;
   aBuffer: IOTAEditBuffer;
@@ -252,12 +252,12 @@ begin
 
   if FCurrentOperation.TryAddToCount(commandToMatch) then
     // we dont act on this, we just store if as a modifier for other commands
-  else if FViOperatorBindings.TryGetValue(commandToMatch, aViOperatorCClass) then
-    FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViOperatorCClass)
-  else if FViNavigationBindings.TryGetValue(commandToMatch, aViNavigationCClass) then
-    FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViNavigationCClass)
-  else if (FCurrentOperation.OperatorCommand = nil) and FViEditBindings.TryGetValue(commandToMatch, aViEditCClass) then
-    FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViEditCClass)
+  else if FOperatorBindings.TryGetValue(commandToMatch, aOperatorClass) then
+    FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aOperatorClass)
+  else if FMotionBindings.TryGetValue(commandToMatch, aMotionClass) then
+    FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aMotionClass)
+  else if (FCurrentOperation.OperatorCommand = nil) and FEditionBindings.TryGetValue(commandToMatch, aEditionClass) then
+    FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aEditionClass)
   else
   begin
     keepChar := True;
@@ -267,9 +267,9 @@ begin
     begin
       // only support for these for the time being
       searchString := copy(commandToMatch, 0, len - 1) + '+';
-      if FViNavigationBindings.TryGetValue(searchString, aViNavigationCClass) then
+      if FMotionBindings.TryGetValue(searchString, aMotionClass) then
       begin
-        FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aViNavigationCClass, copy(commandToMatch, len, 1));
+        FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aMotionClass, copy(commandToMatch, len, 1));
         keepChar := False;
       end;
     end;
@@ -279,95 +279,95 @@ begin
     FCurrentOperation.ClearCommandToMatch;
 end;
 
-procedure TViEngine.LButtonDown;
+procedure TEngine.LButtonDown;
 begin
   FCurrentOperation.Reset(false);
 end;
 
-procedure TViEngine.FillViBindings;
+procedure TEngine.FillBindings;
 begin
   // operators
-  FViOperatorBindings.Add('d', TViOCDelete);
-  FViOperatorBindings.Add('y', TViOCYank);
-  FViOperatorBindings.Add('c', TViOCChange);
-  FViOperatorBindings.Add('>', TViOCIndentRight);
-  FViOperatorBindings.Add('<', TViOCIndentLeft);
-  FViOperatorBindings.Add('=', TViOCAutoIndent);
-  FViOperatorBindings.Add('gU', TViOCUppercase);
+  FOperatorBindings.Add('d', TOperatorDelete);
+  FOperatorBindings.Add('y', TOperatorYank);
+  FOperatorBindings.Add('c', TOperatorChange);
+  FOperatorBindings.Add('>', TOperatorIndentRight);
+  FOperatorBindings.Add('<', TOperatorIndentLeft);
+  FOperatorBindings.Add('=', TOperatorAutoIndent);
+  FOperatorBindings.Add('gU', TOperatorUppercase);
   // gUU for line, guu for line
-  FViOperatorBindings.Add('gu', TViOCLowercase);
+  FOperatorBindings.Add('gu', TOperatorLowercase);
 
   // motions
-  FViNavigationBindings.Add('w', TViTOCWord);
-  FViNavigationBindings.Add('W', TViTOCWordCharacter);
-  FViNavigationBindings.Add('b', TViTOCWordBack);
-  FViNavigationBindings.Add('B', TViTOCWordCharacterBack);
-  FViNavigationBindings.Add('e', TViTOCEndOfWord);
-  FViNavigationBindings.Add('E', TViTOCEndOfWordCharacter);
-  FViNavigationBindings.Add('i+', TViNCInside);
-  FViNavigationBindings.Add('a+', TViNCAround);
+  FMotionBindings.Add('w', TMotionWord);
+  FMotionBindings.Add('W', TMotionWordCharacter);
+  FMotionBindings.Add('b', TMotionWordBack);
+  FMotionBindings.Add('B', TMotionWordCharacterBack);
+  FMotionBindings.Add('e', TMotionEndOfWord);
+  FMotionBindings.Add('E', TMotionEndOfWordCharacter);
+  FMotionBindings.Add('i+', TMotionInside);
+  FMotionBindings.Add('a+', TMotionAround);
 
   // here '+' denotes that another character is needed to run/match the command
-  FViNavigationBindings.add('h', TViNCLeft);
-  FViNavigationBindings.add('l', TViNCRight);
-  FViNavigationBindings.add('j', TViNCDown);
-  FViNavigationBindings.add('k', TViNCUp);
-  FViNavigationBindings.add('f+', TViNCFindForward);
-  FViNavigationBindings.add('F+', TViNCFindBackwards);
-  FViNavigationBindings.add('t+', TViNCFindTilForward);
-  FViNavigationBindings.add('T+', TViNCFindTilBackwards);
-//  FViNavigationBindings.add('', TViNCHalfPageUp);
-//  FViNavigationBindings.add('', TViNCHalfPageDown);
-  FViNavigationBindings.add('0', TViNCStartOfLine);
-  FViNavigationBindings.add('$', TViNCEndOfLine);
-  FViNavigationBindings.add('_', TViNCStartOfLineAfterWhiteSpace);
-  FViNavigationBindings.add('gg', TViNCFirstLine);
-  FViNavigationBindings.add('G', TViNCGoToLine);
-  FViNavigationBindings.add('n', TViNCNextMatch);
-  FViNavigationBindings.add('N', TViNCPreviousMatch);
-  FViNavigationBindings.add('*', TViNCNextWholeWordUnderCursor);
-  FViNavigationBindings.add('#', TViNCPreviousWholeWordUnderCursor);
-  FViNavigationBindings.add(' ', TViNCRight);
-  FViNavigationBindings.add('L', TViNCBottomScreen);
-  FViNavigationBindings.add('M', TViNCMiddleScreen);
-  FViNavigationBindings.add('{', TViNCPreviousParagraphBreak);
-  FViNavigationBindings.add('}', TViNCNextParagraphBreak);
-//  FViTextObjectBindings.Add('''', TViNCGoToMark); // takes in the mark char
+  FMotionBindings.add('h', TMotionLeft);
+  FMotionBindings.add('l', TMotionRight);
+  FMotionBindings.add('j', TMotionDown);
+  FMotionBindings.add('k', TMotionUp);
+  FMotionBindings.add('f+', TMotionFindForward);
+  FMotionBindings.add('F+', TMotionFindBackwards);
+  FMotionBindings.add('t+', TMotionFindTilForward);
+  FMotionBindings.add('T+', TMotionFindTilBackwards);
+//  FViNavigationBindings.add('', TMotionHalfPageUp);
+//  FViNavigationBindings.add('', TMotionHalfPageDown);
+  FMotionBindings.add('0', TMotionBOL);
+  FMotionBindings.add('$', TMotionEOL);
+  FMotionBindings.add('_', TMotionBOLAfterWhiteSpace);
+  FMotionBindings.add('gg', TMotionFirstLine);
+  FMotionBindings.add('G', TMotionGoToLine);
+  FMotionBindings.add('n', TMotionNextMatch);
+  FMotionBindings.add('N', TMotionPreviousMatch);
+  FMotionBindings.add('*', TMotionNextWholeWordUnderCursor);
+  FMotionBindings.add('#', TMotionPreviousWholeWordUnderCursor);
+  FMotionBindings.add(' ', TMotionRight);
+  FMotionBindings.add('L', TMotionBottomScreen);
+  FMotionBindings.add('M', TMotionMiddleScreen);
+  FMotionBindings.add('{', TMotionPreviousParagraphBreak);
+  FMotionBindings.add('}', TMotionNextParagraphBreak);
+//  FViTextObjectBindings.Add('''', TMotionGoToMark); // takes in the mark char
 
   // one-shots with number modifiers
-  FViEditBindings.Add('a', TViECAppend);
-  FViEditBindings.Add('A', TViECAppendEOL);
-  FViEditBindings.Add('i', TViECInsert);
-  FViEditBindings.Add('I', TViECInsertBOL);
-  FViEditBindings.Add('o', TViECNextLine);
-  FViEditBindings.Add('O', TViECPreviousLine);
-  FViEditBindings.Add('s', TViECDeleteCharInsert);
-  FViEditBindings.Add('S', TViECDeleteLineInsert);
-  FViEditBindings.Add('D', TViECDeleteTilEOL);
-  FViEditBindings.Add('C', TViECChangeTilEOL);
-  FViEditBindings.Add('r', TViECReplaceChar);
-  FViEditBindings.Add('R', TViECReplaceMode);
-  FViEditBindings.Add('u', TViECUndo);
-  FViEditBindings.Add('U', TViECRedo);
-//  FViEditBindings.Add('<C-R>', TViECDeleteCharacter);
-  FViEditBindings.Add('x', TViECDeleteCharacter);
-  FViEditBindings.Add('X', TViECDeletePreviousCharacter);
-  FViEditBindings.Add('p', TViECPaste);
-  FViEditBindings.Add('P', TViECPasteBefore);
-  FViEditBindings.Add('J', TViECJoinLines);
-  FViEditBindings.Add('.', TViECRepeatLastCommand);
-  FViEditBindings.Add('~', TViECToggleCase);
+  FEditionBindings.Add('a', TEditionAppend);
+  FEditionBindings.Add('A', TEditionAppendEOL);
+  FEditionBindings.Add('i', TEditionInsert);
+  FEditionBindings.Add('I', TEditionInsertBOL);
+  FEditionBindings.Add('o', TEditionNextLine);
+  FEditionBindings.Add('O', TEditionPreviousLine);
+  FEditionBindings.Add('s', TEditionDeleteCharInsert);
+  FEditionBindings.Add('S', TEditionDeleteLineInsert);
+  FEditionBindings.Add('D', TEditionDeleteTilEOL);
+  FEditionBindings.Add('C', TEditionChangeTilEOL);
+  FEditionBindings.Add('r', TEditionReplaceChar);
+  FEditionBindings.Add('R', TEditionReplaceMode);
+  FEditionBindings.Add('u', TEditionUndo);
+  FEditionBindings.Add('U', TEditionRedo);
+//  FViEditBindings.Add('<C-R>', TEditionDeleteCharacter);
+  FEditionBindings.Add('x', TEditionDeleteCharacter);
+  FEditionBindings.Add('X', TEditionDeletePreviousCharacter);
+  FEditionBindings.Add('p', TEditionPaste);
+  FEditionBindings.Add('P', TEditionPasteBefore);
+  FEditionBindings.Add('J', TEditionJoinLines);
+  FEditionBindings.Add('.', TEditionRepeatLastCommand);
+  FEditionBindings.Add('~', TEditionToggleCase);
 
   // todo: move these and require the ENTER key to run, so I can add modifiers like '!'
-  FViEditBindings.Add(':w', TViECSaveFile);
-  FViEditBindings.Add(':q', TViECCloseFile);
+  FEditionBindings.Add(':w', TEditionSaveFile);
+  FEditionBindings.Add(':q', TEditionCloseFile);
 
 //To Migrate
 //  FViKeybinds.Add('m', ActionSetMark);  // takes in the mark char
 //  FViKeybinds.Add('/', ActionSearch);
 end;
 
-procedure TViEngine.SetViMode(ANewMode: TViMode);
+procedure TEngine.SetViMode(ANewMode: TViMode);
 var
   LText: String;
 begin
@@ -380,13 +380,13 @@ begin
   end;
 end;
 
-procedure TViEngine.SetOnCaptionChanged(ANewProc: TCaptionChangeProc);
+procedure TEngine.SetOnCaptionChanged(ANewProc: TCaptionChangeProc);
 begin
   FOnCaptionChanged := ANewProc;
   FOnCaptionChanged(GetViModeString(currentViMode, FCurrentCommandForCaption)); // call new procedure immediately
 end;
 
-procedure TViEngine.ToggleActive;
+procedure TEngine.ToggleActive;
 begin
   if currentViMode = mInactive then
     currentViMode := mNormal

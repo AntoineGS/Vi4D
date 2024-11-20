@@ -29,15 +29,15 @@ requires
   designide;
 
 contains
-  Commands.Navigation in 'src\Commands.Navigation.pas',
-  ViDelphiWizard in 'src\ViDelphiWizard.pas',
-  ViEngine in 'src\ViEngine.pas',
+  Commands.Motion in 'src\Commands.Motion.pas',
+  Vi4DWizard in 'src\Vi4DWizard.pas',
+  Engine in 'src\Engine.pas',
   Commands.Operators in 'src\Commands.Operators.pas',
   Commands.Base in 'src\Commands.Base.pas',
-  ViOperation in 'src\ViOperation.pas',
+  Operation in 'src\Operation.pas',
   NavUtils in 'src\NavUtils.pas',
   Clipboard in 'src\Clipboard.pas',
-  Commands.Editing in 'src\Commands.Editing.pas',
-  Commands.Navigation.InsideAround in 'src\Commands.Navigation.InsideAround.pas';
+  Commands.Edition in 'src\Commands.Edition.pas',
+  Commands.IAMotion in 'src\Commands.IAMotion.pas';
 
 end.

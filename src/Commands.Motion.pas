@@ -1,4 +1,4 @@
-unit Commands.Navigation;
+unit Commands.Motion;
 
 interface
 
@@ -8,12 +8,12 @@ uses
   ToolsAPI,
   SysUtils,
   Generics.Collections,
-  Commands.Navigation.InsideAround;
+  Commands.IAMotion;
 
 type
   IEditionMotion = interface
     ['{7E9776B7-AB0F-4F7F-BB14-6D02DAD0EBC0}']
-    procedure Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TViOperatorC; aCount: integer);
+    procedure Execute(aCursorPosition: IOTAEditPosition; aOperator: TOperator; aCount: integer);
   end;
 
   ISearchMotion = interface
@@ -23,47 +23,47 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TViNavigationC = class(TViCommand)
+  TMotion = class(TCommand)
   public
-    procedure Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TViOperatorC; aCount: integer);
+    procedure Execute(aCursorPosition: IOTAEditPosition; aOperator: TOperator; aCount: integer);
     function DefaultCount: integer; virtual;
   end;
 
-  TViNavigationCClass = class of TViNavigationC;
+  TMotionClass = class of TMotion;
 
-  TViNCLeft = class(TViNavigationC, INavigationMotion)
+  TMotionLeft = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCRight = class(TViNavigationC, INavigationMotion)
+  TMotionRight = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCBottomScreen = class(TViNavigationC, INavigationMotion)
+  TMotionBottomScreen = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCMiddleScreen = class(TViNavigationC, INavigationMotion)
+  TMotionMiddleScreen = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCPreviousParagraphBreak = class(TViNavigationC, INavigationMotion)
+  TMotionPreviousParagraphBreak = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCNextParagraphBreak = class(TViNavigationC, INavigationMotion)
+  TMotionNextParagraphBreak = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCDown = class(TViNavigationC, INavigationMotion)
+  TMotionDown = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCUp = class(TViNavigationC, INavigationMotion)
+  TMotionUp = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCFindForward = class(TViNavigationC, INavigationMotion, ISearchMotion)
+  TMotionFindForward = class(TMotion, INavigationMotion, ISearchMotion)
   private
     FSearchToken: string;
   public
@@ -73,7 +73,7 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TViNCFindBackwards = class(TViNavigationC, INavigationMotion, ISearchMotion)
+  TMotionFindBackwards = class(TMotion, INavigationMotion, ISearchMotion)
   private
     FSearchToken: string;
   public
@@ -83,7 +83,7 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TViNCFindTilForward = class(TViNavigationC, INavigationMotion, ISearchMotion)
+  TMotionFindTilForward = class(TMotion, INavigationMotion, ISearchMotion)
   private
     FSearchToken: string;
   public
@@ -93,7 +93,7 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TViNCFindTilBackwards = class(TViNavigationC, INavigationMotion, ISearchMotion)
+  TMotionFindTilBackwards = class(TMotion, INavigationMotion, ISearchMotion)
   private
     FSearchToken: string;
   public
@@ -103,88 +103,88 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TViNCHalfPageUp = class(TViNavigationC)
+  TMotionHalfPageUp = class(TMotion)
   end;
 
-  TViNCHalfPageDown = class(TViNavigationC)
+  TMotionHalfPageDown = class(TMotion)
   end;
 
-  TViNCStartOfLine = class(TViNavigationC, INavigationMotion)
+  TMotionBOL = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
   // $
-  TViNCEndOfLine = class(TViNavigationC, INavigationMotion)
+  TMotionEOL = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCTrueEndOfLine = class(TViNavigationC, INavigationMotion)
+  TMotionTrueEOL = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
   // _
-  TViNCStartOfLineAfterWhiteSpace = class(TViNavigationC, INavigationMotion)
+  TMotionBOLAfterWhiteSpace = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCFirstLine = class(TViNavigationC, INavigationMotion)
+  TMotionFirstLine = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCGoToLine = class(TViNavigationC, INavigationMotion)
+  TMotionGoToLine = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
     function DefaultCount: integer; override;
   end;
 
-  TViNCNextMatch = class(TViNavigationC, INavigationMotion)
+  TMotionNextMatch = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCPreviousMatch = class(TViNavigationC, INavigationMotion)
+  TMotionPreviousMatch = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCNextWholeWordUnderCursor = class(TViNavigationC, INavigationMotion)
+  TMotionNextWholeWordUnderCursor = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCPreviousWholeWordUnderCursor = class(TViNavigationC)
+  TMotionPreviousWholeWordUnderCursor = class(TMotion)
   end;
 
-//  TViTOCParagraph = class(TViNavigationC)
+//  TMotionParagraph = class(TViNavigationC)
 //  end;
 
-  TViTOCWord = class(TViNavigationC, INavigationMotion)
+  TMotionWord = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViTOCWordCharacter = class(TViNavigationC, INavigationMotion)
+  TMotionWordCharacter = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViTOCWordBack = class(TViNavigationC, INavigationMotion)
+  TMotionWordBack = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViTOCWordCharacterBack = class(TViNavigationC, INavigationMotion)
+  TMotionWordCharacterBack = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViTOCEndOfWordCharacter = class(TViNavigationC, INavigationMotion)
+  TMotionEndOfWordCharacter = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViTOCEndOfWord = class(TViNavigationC, INavigationMotion)
+  TMotionEndOfWord = class(TMotion, INavigationMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
   end;
 
-  TViNCInsideAround = class(TViNavigationC, ISearchMotion, IEditionMotion)
+  TMotionInsideAround = class(TMotion, ISearchMotion, IEditionMotion)
   private
     FSearchToken: string;
   protected
     class var
-      FViIAKeyBindings: TDictionary<string, TInsideAroundCClass>;
-    class procedure FillViBindings;
+      FIAMotionKeyBindings: TDictionary<string, TIAMotionClass>;
+    class procedure FillBindings;
   public
     function GetSearchToken: string;
     procedure SetSearchToken(const aValue: string);
@@ -192,11 +192,11 @@ type
   end;
 
   // these will delegate the Move to their sub command
-  TViNCInside = class(TViNCInsideAround, IInsideAroundMotion)
+  TMotionInside = class(TMotionInsideAround, IIAMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TViNCAround = class(TViNCInsideAround, IInsideAroundMotion)
+  TMotionAround = class(TMotionInsideAround, IIAMotion)
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
@@ -207,9 +207,9 @@ uses
   Math,
   Clipboard;
 
-{ TViNCLeft }
+{ TMotionLeft }
 
-procedure TViNCLeft.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionLeft.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -217,9 +217,9 @@ begin
   aCursorPosition.MoveRelative(0, -aCount);
 end;
 
-{ TViNCUp }
+{ TMotionUp }
 
-procedure TViNCUp.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionUp.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -227,9 +227,9 @@ begin
   aCursorPosition.MoveRelative(-aCount, 0);
 end;
 
-{ TViNCDown }
+{ TMotionDown }
 
-procedure TViNCDown.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionDown.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -237,9 +237,9 @@ begin
   aCursorPosition.MoveRelative(aCount, 0);
 end;
 
-{ TViNCRight }
+{ TMotionRight }
 
-procedure TViNCRight.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionRight.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -247,9 +247,9 @@ begin
   aCursorPosition.MoveRelative(0, aCount);
 end;
 
-{ TViNCStartOfLine }
+{ TMotionStartOfLine }
 
-procedure TViNCStartOfLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionBOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -257,9 +257,9 @@ begin
   aCursorPosition.MoveBOL;
 end;
 
-{ TViNCEndOfLine }
+{ TMotionEndOfLine }
 
-procedure TViNCEndOfLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionEOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -270,9 +270,9 @@ begin
     aCursorPosition.MoveRelative(0, -1);
 end;
 
-{ TViNCStartOfLineAfterWhiteSpace }
+{ TMotionStartOfLineAfterWhiteSpace }
 
-procedure TViNCStartOfLineAfterWhiteSpace.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionBOLAfterWhiteSpace.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -283,17 +283,17 @@ begin
     aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight or mmSkipStream);
 end;
 
-function TViNavigationC.DefaultCount: integer;
+function TMotion.DefaultCount: integer;
 begin
   result := 1;
 end;
 
-procedure TViNavigationC.Execute(aCursorPosition: IOTAEditPosition; aViOperatorC: TViOperatorC; aCount: integer);
+procedure TMotion.Execute(aCursorPosition: IOTAEditPosition; aOperator: TOperator; aCount: integer);
 var
   lPos: TOTAEditPos;
   aNormalMotion: INavigationMotion;
   fullLines: boolean;
-  aIAMotion: IInsideAroundMotion;
+  aIAMotion: IIAMotion;
   LSelection: IOTAEditBlock;
 begin
   if aCursorPosition = nil then
@@ -301,32 +301,32 @@ begin
 
   if Supports(self, INavigationMotion, aNormalMotion) then
   begin
-    if aViOperatorC = nil then
+    if aOperator = nil then
     begin
       lPos := GetPositionForMove(aCursorPosition, aNormalMotion, false, aCount);
       aCursorPosition.Move(lPos.Line, lPos.Col);
     end
     else
     begin
-      fullLines := (self.ClassType = TViNCDown) or (self.ClassType = TViNCUp);
+      fullLines := (self.ClassType = TMotionDown) or (self.ClassType = TMotionUp);
 
       // if full lines we need to ensure to grab the full line on which we are + the x number in the direction given
       if fullLines then
       begin
-        if self.ClassType = TViNCDown then
+        if self.ClassType = TMotionDown then
           aCursorPosition.MoveBOL
         else
           aCursorPosition.MoveEOL;
       end;
 
       lPos := GetPositionForMove(aCursorPosition, aNormalMotion, true, aCount, fullLines);
-      ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, fullLines, lPos);
+      ApplyActionToSelection(aCursorPosition, aOperator.BlockAction, fullLines, lPos);
     end;
   end
-  else if Supports(self, IInsideAroundMotion, aIAMotion) then
+  else if Supports(self, IIAMotion, aIAMotion) then
   begin
     LSelection := aIAMotion.GetSelection(aCursorPosition);
-    ApplyActionToSelection(aCursorPosition, aViOperatorC.BlockAction, true, LSelection);
+    ApplyActionToSelection(aCursorPosition, aOperator.BlockAction, true, LSelection);
   end;
 
   if aCursorPosition.SearchOptions.SearchText <> '' then
@@ -336,9 +336,9 @@ begin
   end;
 end;
 
-{ TViNCTrueEndOfLine }
+{ TMotionTrueEndOfLine }
 
-procedure TViNCTrueEndOfLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionTrueEOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -346,14 +346,14 @@ begin
   aCursorPosition.MoveEOL;
 end;
 
-{ TViNCGoToLine }
+{ TMotionGoToLine }
 
-function TViNCGoToLine.DefaultCount: integer;
+function TMotionGoToLine.DefaultCount: integer;
 begin
   result := 0;
 end;
 
-procedure TViNCGoToLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionGoToLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -364,9 +364,9 @@ begin
     aCursorPosition.GotoLine(aCount);
 end;
 
-{ TViNCFirstLine }
+{ TMotionFirstLine }
 
-procedure TViNCFirstLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionFirstLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -374,15 +374,15 @@ begin
   aCursorPosition.GotoLine(1);
 end;
 
-{ TViNCFindForward }
+{ TMotionFindForward }
 
 procedure FindForward(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean; aClipboard: TClipboard;
-  aViEngine: IViEngine; const searchToken: string; offsetFromResult: integer = 1);
+  aEngine: IEngine; const searchToken: string; offsetFromResult: integer = 1);
 var
   aBuffer: IOTAEditBuffer;
   LSelection: IOTAEditBlock;
   aText: string;
-  aViNCTrueEndOfLine: TViNCTrueEndOfLine;
+  aMotionTrueEOL: TMotionTrueEOL;
   lPos: TOTAEditPos;
   i: integer;
   foundCount: integer;
@@ -397,14 +397,14 @@ begin
   if aClipboard = nil then
     Raise Exception.Create('aClipboard must be set in call to FindForward');
 
-  if aViEngine = nil then
-    Raise Exception.Create('aViEngine must be set in call to FindForward');
+  if aEngine = nil then
+    Raise Exception.Create('aEngine must be set in call to FindForward');
 
-  aViNCTrueEndOfLine := TViNCTrueEndOfLine.Create(aClipboard, aViEngine);
+  aMotionTrueEOL := TMotionTrueEOL.Create(aClipboard, aEngine);
   try
-    lPos := GetPositionForMove(aCursorPosition, aViNCTrueEndOfLine, false);
+    lPos := GetPositionForMove(aCursorPosition, aMotionTrueEOL, false);
   finally
-    aViNCTrueEndOfLine.Free;
+    aMotionTrueEOL.Free;
   end;
 
   aCursorPosition.Save;
@@ -442,45 +442,45 @@ begin
   end;
 end;
 
-function TViNCFindForward.GetSearchToken: string;
+function TMotionFindForward.GetSearchToken: string;
 begin
   result := FSearchToken;
 end;
 
-procedure TViNCFindForward.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionFindForward.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
-  FindForward(aCursorPosition, aCount, forEdition, FClipboard, FViEngine, FSearchToken);
+  FindForward(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken);
 end;
 
-procedure TViNCFindForward.SetSearchToken(const aValue: string);
+procedure TMotionFindForward.SetSearchToken(const aValue: string);
 begin
   FSearchToken := aValue;
 end;
 
-{ TViNCFindTilForward }
+{ TMotionFindTilForward }
 
-function TViNCFindTilForward.GetSearchToken: string;
+function TMotionFindTilForward.GetSearchToken: string;
 begin
   result := FSearchToken;
 end;
 
-procedure TViNCFindTilForward.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionFindTilForward.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
 
-  FindForward(aCursorPosition, aCount, forEdition, FClipboard, FViEngine, FSearchToken, 2);
+  FindForward(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken, 2);
 end;
 
-procedure TViNCFindTilForward.SetSearchToken(const aValue: string);
+procedure TMotionFindTilForward.SetSearchToken(const aValue: string);
 begin
   FSearchToken := aValue;
 end;
 
-{ TViNCFindBackwards }
+{ TMotionFindBackwards }
 
 procedure FindBackwards(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean;
-  aClipboard: TClipboard; aViEngine: IViEngine; const searchToken: string; offsetFromResult: integer = 1);
+  aClipboard: TClipboard; aEngine: IEngine; const searchToken: string; offsetFromResult: integer = 1);
 var
   aBuffer: IOTAEditBuffer;
   LSelection: IOTAEditBlock;
@@ -488,7 +488,7 @@ var
   lPos: TOTAEditPos;
   i: integer;
   foundCount: integer;
-  aViNCStartOfLine: TViNCStartOfLine;
+  aMotionBOL: TMotionBOL;
   relativePos: integer;
 begin
   // only supporting a 1 character for now
@@ -501,14 +501,14 @@ begin
   if aClipboard = nil then
     Raise Exception.Create('aClipboard must be set in call to FindForward');
 
-  if aViEngine = nil then
-    Raise Exception.Create('aViEngine must be set in call to FindForward');
+  if aEngine = nil then
+    Raise Exception.Create('aEngine must be set in call to FindForward');
 
-  aViNCStartOfLine := TViNCStartOfLine.Create(aClipboard, aViEngine);
+  aMotionBOL := TMotionBOL.Create(aClipboard, aEngine);
   try
-    lPos := GetPositionForMove(aCursorPosition, aViNCStartOfLine, false);
+    lPos := GetPositionForMove(aCursorPosition, aMotionBOL, false);
   finally
-    aViNCStartOfLine.Free;
+    aMotionBOL.Free;
   end;
 
   aCursorPosition.Save;
@@ -544,47 +544,47 @@ begin
   end;
 end;
 
-function TViNCFindBackwards.GetSearchToken: string;
+function TMotionFindBackwards.GetSearchToken: string;
 begin
   result := FSearchToken;
 end;
 
-procedure TViNCFindBackwards.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionFindBackwards.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
 
-  FindBackwards(aCursorPosition, aCount, forEdition, FClipboard, FViEngine, FSearchToken);
+  FindBackwards(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken);
 end;
 
-procedure TViNCFindBackwards.SetSearchToken(const aValue: string);
+procedure TMotionFindBackwards.SetSearchToken(const aValue: string);
 begin
   FSearchToken := aValue;
 end;
 
-{ TViNCFindTilBackwards }
+{ TMotionFindTilBackwards }
 
-function TViNCFindTilBackwards.GetSearchToken: string;
+function TMotionFindTilBackwards.GetSearchToken: string;
 begin
   result := FSearchToken;
 end;
 
-procedure TViNCFindTilBackwards.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionFindTilBackwards.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
 
-  FindBackwards(aCursorPosition, aCount, forEdition, FClipboard, FViEngine, FSearchToken, 0);
+  FindBackwards(aCursorPosition, aCount, forEdition, FClipboard, FEngine, FSearchToken, 0);
 end;
 
-procedure TViNCFindTilBackwards.SetSearchToken(const aValue: string);
+procedure TMotionFindTilBackwards.SetSearchToken(const aValue: string);
 begin
   FSearchToken := aValue;
 end;
 
-{ TViNCBottomScreen }
+{ TMotionBottomScreen }
 
-procedure TViNCBottomScreen.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionBottomScreen.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   aBuffer: IOTAEditBuffer;
 begin
@@ -592,9 +592,9 @@ begin
   aCursorPosition.Move(aBuffer.TopView.BottomRow - aCount, 0);
 end;
 
-{ TViNCMiddleScreen }
+{ TMotionMiddleScreen }
 
-procedure TViNCMiddleScreen.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionMiddleScreen.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   aBuffer: IOTAEditBuffer;
   TopView: IOTAEditView;
@@ -604,15 +604,15 @@ begin
   aCursorPosition.Move(TopView.TopRow + Trunc(((TopView.BottomRow - 1) - TopView.TopRow) / 2), 0);
 end;
 
-{ TViNCNextWholeWordUnderCursor }
+{ TMotionNextWholeWordUnderCursor }
 
-procedure TViNCNextWholeWordUnderCursor.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionNextWholeWordUnderCursor.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   LSelection: IOTAEditBlock;
   lPos: TOTAEditPos;
   i: integer;
   aBuffer: IOTAEditBuffer;
-  aViTOCEndOfWord: TViTOCEndOfWord;
+  aMotionEndOfWord: TMotionEndOfWord;
 begin
   aBuffer := GetEditBuffer;
 
@@ -621,11 +621,11 @@ begin
   else
     aCursorPosition.MoveCursor(mmSkipNonWord or mmSkipRight or mmSkipStream);
 
-  aViTOCEndOfWord := TViTOCEndOfWord.Create(FClipboard, FViEngine);
+  aMotionEndOfWord := TMotionEndOfWord.Create(FClipboard, FEngine);
   try
-    lPos := GetPositionForMove(aCursorPosition, aViTOCEndOfWord, false);
+    lPos := GetPositionForMove(aCursorPosition, aMotionEndOfWord, false);
   finally
-    aViTOCEndOfWord.Free;
+    aMotionEndOfWord.Free;
   end;
 
   LSelection := aBuffer.EditBlock;
@@ -655,9 +655,9 @@ begin
 {$MESSAGE 'Find defaults and finally them back for the Search Options'}
 end;
 
-{ TViNCNextMatch }
+{ TMotionNextMatch }
 
-procedure TViNCNextMatch.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionNextMatch.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   LSelection: IOTAEditBlock;
   i: integer;
@@ -682,9 +682,9 @@ begin
   aCursorPosition.MoveRelative(0, -Length(aCursorPosition.SearchOptions.SearchText));
 end;
 
-{ TViNCPreviousMatch }
+{ TMotionPreviousMatch }
 
-procedure TViNCPreviousMatch.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionPreviousMatch.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   LSelection: IOTAEditBlock;
   i: integer;
@@ -707,9 +707,9 @@ begin
     aCursorPosition.SearchAgain;
 end;
 
-{ TViNCPreviousParagraphBreak }
+{ TMotionPreviousParagraphBreak }
 
-procedure TViNCPreviousParagraphBreak.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionPreviousParagraphBreak.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: integer;
   row: integer;
@@ -742,9 +742,9 @@ begin
   end;
 end;
 
-{ TViNCNextParagraphBreak }
+{ TMotionNextParagraphBreak }
 
-procedure TViNCNextParagraphBreak.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionNextParagraphBreak.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: integer;
   row: integer;
@@ -779,9 +779,9 @@ begin
   end;
 end;
 
-{ TViTOCWord }
+{ TMotionWord }
 
-procedure TViTOCWord.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionWord.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: Integer;
 begin
@@ -801,12 +801,12 @@ begin
   end;
 end;
 
-{ TViTOCWordBack }
+{ TMotionWordBack }
 
-procedure TViTOCWordBack.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionWordBack.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: Integer;
-  LNextChar: TViCharClass;
+  LNextChar: TCharClass;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to Move');
@@ -834,9 +834,9 @@ begin
   end;
 end;
 
-{ TViTOCWordCharacter }
+{ TMotionWordCharacter }
 
-procedure TViTOCWordCharacter.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionWordCharacter.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: Integer;
 begin
@@ -852,9 +852,9 @@ begin
   end;
 end;
 
-{ TViTOCWordCharacterBack }
+{ TMotionWordCharacterBack }
 
-procedure TViTOCWordCharacterBack.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionWordCharacterBack.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: Integer;
 begin
@@ -868,9 +868,9 @@ begin
   end;
 end;
 
-{ TViTOCEndOfWordCharacter }
+{ TMotionEndOfWordCharacter }
 
-procedure TViTOCEndOfWordCharacter.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionEndOfWordCharacter.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: Integer;
 begin
@@ -888,9 +888,9 @@ begin
   end;
 end;
 
-{ TViTOCEndOfWord }
+{ TMotionEndOfWord }
 
-procedure TViTOCEndOfWord.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionEndOfWord.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 var
   i: Integer;
 begin
@@ -910,97 +910,97 @@ begin
   end;
 end;
 
-{ TViNCInsideAround }
+{ TMotionInsideAround }
 
-function TViNCInsideAround.GetSearchToken: string;
+function TMotionInsideAround.GetSearchToken: string;
 begin
   result := FSearchToken;
 end;
 
-procedure TViNCInsideAround.SetSearchToken(const aValue: string);
+procedure TMotionInsideAround.SetSearchToken(const aValue: string);
 begin
   FSearchToken := aValue;
 end;
 
-{ TViNCInside }
+{ TMotionInside }
 
-function TViNCInside.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock; // these can AV if nothing is found, gotta fix that   dd
+function TMotionInside.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock; // these can AV if nothing is found, gotta fix that   dd
 var
-  aIACClass: TInsideAroundCClass;
-  aIAC: TInsideAroundC;
+  aIAMotionClass: TIAMotionClass;
+  aIAMotion: TIAMotion;
   aBuffer: IOTAEditBuffer;
-  aIAMotion: IInsideAroundMotion;
+  aIIAMotion: IIAMotion;
 begin
   aBuffer := GetEditBuffer;
 
-  if FViIAKeyBindings.TryGetValue(FSearchToken, aIACClass) then
+  if FIAMotionKeyBindings.TryGetValue(FSearchToken, aIAMotionClass) then
   begin
-    aIAC := aIACClass.Create(FClipboard, FViEngine, itInside);
+    aIAMotion := aIAMotionClass.Create(FClipboard, FEngine, itInside);
 
-    if Supports(aIAC, IInsideAroundMotion, aIAMotion) then
+    if Supports(aIAMotion, IIAMotion, aIIAMotion) then
     begin
-      result := aIAMotion.GetSelection(aCursorPosition);
+      result := aIIAMotion.GetSelection(aCursorPosition);
       aBuffer.TopView.MoveViewToCursor;
     end;
   end;
 end;
 
-{ TViNCAround }
+{ TMotionAround }
 
 // todo: some commands like `w` should keep one of the two spaces around the word, will need to add this in
-function TViNCAround.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
+function TMotionAround.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
 var
-  aIACClass: TInsideAroundCClass;
-  aIAC: TInsideAroundC;
+  aIAMotionClass: TIAMotionClass;
+  aIAMotion: TIAMotion;
   aBuffer: IOTAEditBuffer;
-  aIAMotion: IInsideAroundMotion;
+  aIIAMotion: IIAMotion;
 begin
   aBuffer := GetEditBuffer;
 
-  if FViIAKeyBindings.TryGetValue(FSearchToken, aIACClass) then
+  if FIAMotionKeyBindings.TryGetValue(FSearchToken, aIAMotionClass) then
   begin
-    aIAC := aIACClass.Create(FClipboard, FViEngine, itAround);
+    aIAMotion := aIAMotionClass.Create(FClipboard, FEngine, itAround);
 
-    if Supports(aIAC, IInsideAroundMotion, aIAMotion) then
+    if Supports(aIAMotion, IIAMotion, aIIAMotion) then
     begin
-      result := aIAMotion.GetSelection(aCursorPosition);
+      result := aIIAMotion.GetSelection(aCursorPosition);
       aBuffer.TopView.MoveViewToCursor;
     end;
   end;
 end;
 
-{ TViNCInsideAround }
+{ TMotionInsideAround }
 
-{ TViNCInsideAround }
+{ TMotionInsideAround }
 
-class procedure TViNCInsideAround.FillViBindings;
+class procedure TMotionInsideAround.FillBindings;
 begin
-  FViIAKeyBindings.Add('(', TIAParenthesis);
-  FViIAKeyBindings.Add(')', TIAParenthesis);
-  FViIAKeyBindings.Add('p', TIAParagraph);
-  FViIAKeyBindings.Add('[', TIASquareBracket);
-  FViIAKeyBindings.Add(']', TIASquareBracket);
-  FViIAKeyBindings.Add('{', TIABraces);
-  FViIAKeyBindings.Add('}', TIABraces);
-  FViIAKeyBindings.Add('<', TIAAngleBracket);
-  FViIAKeyBindings.Add('>', TIAAngleBracket);
-  FViIAKeyBindings.Add('''', TIASingleQuote);
-  FViIAKeyBindings.Add('"', TIADoubleQuote);
-  FViIAKeyBindings.Add('`', TIATick);
-  FViIAKeyBindings.Add('B', TIABlocks); // [{]}
-//  FViIAKeyBindings.Add('b', TIABlocks); // [(])
-  FViIAKeyBindings.Add('t', TIATag);
-  FViIAKeyBindings.Add('w', TIAWord);
+  FIAMotionKeyBindings.Add('(', TIAMotionParenthesis);
+  FIAMotionKeyBindings.Add(')', TIAMotionParenthesis);
+  FIAMotionKeyBindings.Add('p', TIAMotionParagraph);
+  FIAMotionKeyBindings.Add('[', TIAMotionSquareBracket);
+  FIAMotionKeyBindings.Add(']', TIAMotionSquareBracket);
+  FIAMotionKeyBindings.Add('{', TIAMotionBraces);
+  FIAMotionKeyBindings.Add('}', TIAMotionBraces);
+  FIAMotionKeyBindings.Add('<', TIAMotionAngleBracket);
+  FIAMotionKeyBindings.Add('>', TIAMotionAngleBracket);
+  FIAMotionKeyBindings.Add('''', TIAMotionSingleQuote);
+  FIAMotionKeyBindings.Add('"', TIAMotionDoubleQuote);
+  FIAMotionKeyBindings.Add('`', TIAMotionTick);
+  FIAMotionKeyBindings.Add('B', TIAMotionBlocks); // [{]}
+//  FViIAKeyBindings.Add('b', TIAMotionBlocks); // [(])
+  FIAMotionKeyBindings.Add('t', TIAMotionTag);
+  FIAMotionKeyBindings.Add('w', TIAMotionWord);
 //  FViIAKeyBindings.Add('W', TIAWord);
 // missing s (sentence)
 end;
 
 initialization
-  TViNCInsideAround.FViIAKeyBindings := TDictionary<string, TInsideAroundCClass>.Create;
-  TViNCInsideAround.FillViBindings;
+  TMotionInsideAround.FIAMotionKeyBindings := TDictionary<string, TIAMotionClass>.Create;
+  TMotionInsideAround.FillBindings;
 
 finalization
-  TViNCInsideAround.FViIAKeyBindings.Free;
+  TMotionInsideAround.FIAMotionKeyBindings.Free;
 
 
 end.

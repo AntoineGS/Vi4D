@@ -19,12 +19,12 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
-unit ViDelphiWizard;
+unit Vi4DWizard;
 
 interface
 
 uses
-  ViEngine,
+  Engine,
   Classes,
   SysUtils,
   ToolsAPI,
@@ -40,7 +40,7 @@ type
   TVi4DWizard = class(TNotifierObject, IOTAWizard)
   private
     FEvents: TApplicationEvents;
-    FViEngine: TViEngine;
+    FEngine: TEngine;
     FAction: TAction;
     FButton: TToolButton;
     procedure DoApplicationMessage(var Msg: TMsg; var Handled: Boolean);
@@ -132,7 +132,7 @@ begin
   aColor := clNone;
 
   // todo make this configurable somehow
-  case FViEngine.currentViMode of
+  case FEngine.currentViMode of
     mNormal: aColor := WebColorStrToColor('#61afef');
     mInsert: aColor := WebColorStrToColor('#c678dd');
     mVisual: aColor := WebColorStrToColor('#d19a66');
@@ -204,7 +204,7 @@ procedure TVi4DWizard.BeforeDestruction;
 begin
   inherited;
   FEvents.OnMessage := nil;
-  FViEngine.Free;
+  FEngine.Free;
   FEvents.Free;
 end;
 
@@ -213,8 +213,8 @@ begin
   AddAction;
   FEvents := TApplicationEvents.Create(nil);
   FEvents.OnMessage := DoApplicationMessage;
-  FViEngine := TViEngine.Create;
-  FViEngine.onCaptionChanged := SetActionCaption;
+  FEngine := TEngine.Create;
+  FEngine.onCaptionChanged := SetActionCaption;
 end;
 
 destructor TVi4DWizard.Destroy;
@@ -237,18 +237,18 @@ begin
     Shift := KeyDataToShiftState(Msg.lParam);
 
     if Msg.message = WM_CHAR then
-      FViEngine.EditChar(Key, ScanCode, Shift, Msg, Handled)
+      FEngine.EditChar(Key, ScanCode, Shift, Msg, Handled)
     else
     begin
       if Key = VK_PROCESSKEY then
         Key := MapVirtualKey(ScanCode, 1);
 
       if Msg.message = WM_KEYDOWN then
-        FViEngine.EditKeyDown(Key, ScanCode, Shift, Msg, Handled);
+        FEngine.EditKeyDown(Key, ScanCode, Shift, Msg, Handled);
     end;
   end
   else if (Msg.message = WM_LBUTTONDOWN) then
-    FViEngine.LButtonDown;
+    FEngine.LButtonDown;
 
   // Has to happen after UI is displayed
   if FButton = nil then
@@ -257,7 +257,7 @@ end;
 
 procedure TVi4DWizard.Execute;
 begin
-  FViEngine.ConfigureCursor;
+  FEngine.ConfigureCursor;
 end;
 
 function TVi4DWizard.GetIDString: string;
@@ -277,7 +277,7 @@ end;
 
 procedure TVi4DWizard.OnActionClick(Sender: TObject);
 begin
-  FViEngine.ToggleActive;
+  FEngine.ToggleActive;
 end;
 
 // http://docwiki.embarcadero.com/RADStudio/Sydney/en/Deleting_Toolbar_Buttons

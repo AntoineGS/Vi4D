@@ -13,27 +13,26 @@ type
   TViMode = (mInactive, mNormal, mInsert, mVisual);
   TDirection = (dForward, dBack);
 
-  IViEngine = interface
+  IEngine = interface
   ['{F2D38261-228B-4CC2-9D86-EC9D39CA63A8}']
     procedure SetViMode(ANewMode: TViMode);
     property CurrentViMode: TViMode write SetViMode;
     procedure ExecuteLastCommand;
   end;
 
-  TViCommand = class(TSingletonImplementation)
+  TCommand = class(TSingletonImplementation)
   protected
-    FViEngine: IViEngine;
+    FEngine: IEngine;
     FClipboard: TClipboard;
     procedure ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
         LPOS: TOTAEditPos); overload;
     procedure ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
         LSelection: IOTAEditBlock); overload;
   public
-    {$MESSAGE 'MAKE SURE TO REMOVE IViEngine!'}
-    constructor Create(aClipboard: TClipboard; viEngineToRemove: IViEngine); reintroduce; virtual;
+    constructor Create(aClipboard: TClipboard; aEngine: IEngine); reintroduce; virtual;
   end;
 
-  TViCommandClass = class of TViCommand;
+  TCommandClass = class of TCommand;
   procedure ChangeIndentation(aCursorPosition: IOTAEditPosition; ADirection: TDirection);
 
 implementation
@@ -131,7 +130,7 @@ begin
   LSelection.Restore;
 end;
 
-procedure TViCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
+procedure TCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
     LPOS: TOTAEditPos);
 var
   LSelection: IOTAEditBlock;
@@ -172,7 +171,7 @@ begin
     end;
 
     if AAction = baChange then
-      FViEngine.currentViMode := mInsert;
+      FEngine.currentViMode := mInsert;
 
     LSelection.EndBlock;
   finally
@@ -182,7 +181,7 @@ begin
 end;
 
 // todo: currently a duplicate
-procedure TViCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
+procedure TCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
     LSelection: IOTAEditBlock);
 var
   LTemp: String;
@@ -216,7 +215,7 @@ begin
     end;
 
     if AAction = baChange then
-      FViEngine.currentViMode := mInsert;
+      FEngine.currentViMode := mInsert;
 
   finally
     if restoreCustorPosition then
@@ -224,12 +223,12 @@ begin
   end;
 end;
 
-constructor TViCommand.Create(aClipboard: TClipboard; viEngineToRemove: IViEngine);
+constructor TCommand.Create(aClipboard: TClipboard; aEngine: IEngine);
 begin
   if aClipboard = nil then
-    Raise Exception.Create('aClipboard must be set in call to TViCommand.Create');
+    Raise Exception.Create('aClipboard must be set in call to TCommand.Create');
 
-  FViEngine := viEngineToRemove;
+  FEngine := aEngine;
   FClipboard := aClipboard;
 end;
 
