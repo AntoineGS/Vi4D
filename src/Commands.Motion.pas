@@ -780,7 +780,9 @@ begin
     if aCursorPosition.IsWordCharacter then
       aCursorPosition.MoveCursor(mmSkipWord or mmSkipRight) // Skip to first non word character.
     else if aCursorPosition.IsSpecialCharacter then
-      aCursorPosition.MoveCursor(mmSkipSpecial or mmSkipRight or mmSkipStream);
+      aCursorPosition.MoveCursor(mmSkipSpecial or mmSkipRight or mmSkipStream)
+    else if aCursorPosition.IsWhiteSpace then
+    aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight);
     // Skip to the first non special character
     // If the character is whitespace or EOL then skip that whitespace
     if (not forEdition) and (aCursorPosition.IsWhiteSpace or (aCursorPosition.Character = #$D)) then
