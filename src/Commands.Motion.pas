@@ -293,7 +293,7 @@ begin
   end;
 
   if aCursorPosition.IsWhiteSpace then
-    aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight or mmSkipStream);
+    aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight);
 end;
 
 function TMotion.DefaultCount: integer;
@@ -997,8 +997,6 @@ begin
     end;
   end;
 end;
-
-{ TMotionInsideAround }
 
 { TMotionInsideAround }
 

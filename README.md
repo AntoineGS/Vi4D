@@ -24,7 +24,8 @@ Note: This does not seem to work in recent versionof Delphi, it works great in D
 
 ## Roadmap
 
-- Support for `#`, Half Page and Page Up/Down, `gUU`, `guu`, (maybe) `=`
+- Add version-specific projects for the ones I have access to (2010, XE3, 12)
+- Support for Half Page and Page Up/Down, `gUU`, `guu`, (maybe) `=`
 - Complete the inside/around featuresets (paragraphs, tags, blocks, word)
 - Selected text behaviors (like selecting text and pressing d to delete selection)
 - Implement `/` searching
@@ -36,14 +37,11 @@ Note: This does not seem to work in recent versionof Delphi, it works great in D
 - Add more `:` commands and require enter key to trigger the parsing and move them to their own keybinding logic, starting with `!`
 - Configurable bindings
 - Look into merging the duplicated `ApplyActionToSelection` methods
+- Look at bringing back the DLL debugging doc and project from the original repo, as it seems for newer versions of Delphi debugging bds.exe does not work
 
 ## Known issues
 
-- Issues with cut and pasting lines not adding new lines
 - `r` does not go back to Normal mode after entering the replacement character
-- `S` does not support number.modifier
-- `dw` does not work when on a white space, it should delete the whitespace
-- Using `Fx` and `Tx` when the cursor is past EoL causes the cursor to move to the wrong place
 - Undo and Redo do not bring the cursor back to the change
 - Around motions with things like `w` need to keep one of the two spaces around
 - After using some motions like Inside\Around when the cursor is before the text to change (like before the opening bracket), the view is changed with the cursor on the top line
@@ -52,6 +50,7 @@ Note: This does not seem to work in recent versionof Delphi, it works great in D
 
 - `L` goes to last -1 line, due to IDE auto-scrolling if we to to the last line
 - `U` is used to Redo, instead of the classic `<C-R>`
+- `Fx` and `Tx` only work on a line
 
 ## License
 
