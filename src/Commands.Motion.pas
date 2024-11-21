@@ -245,17 +245,32 @@ end;
 { TMotionStartOfLine }
 
 procedure TMotionBOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  i: Integer;
 begin
   inherited;
+
+  // count of 1 is considered the same line
+  for i := 2 to aCount do
+    aCursorPosition.MoveRelative(1, 0);
+
   aCursorPosition.MoveBOL;
 end;
 
 { TMotionEndOfLine }
 
 procedure TMotionEOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  aMotionTrueEOL: TMotionTrueEOL;
 begin
   inherited;
-  aCursorPosition.MoveEOL;
+
+  aMotionTrueEOL := TMotionTrueEOL.Create(FClipboard, FEngine);
+  try
+    aMotionTrueEOL.Move(aCursorPosition, aCount, forEdition);
+  finally
+    aMotionTrueEOL.Free;
+  end;
 
   if not forEdition then
     aCursorPosition.MoveRelative(0, -1);
@@ -264,9 +279,17 @@ end;
 { TMotionStartOfLineAfterWhiteSpace }
 
 procedure TMotionBOLAfterWhiteSpace.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  aMotionBOL: TMotionBOL;
 begin
   inherited;
-  aCursorPosition.MoveBOL;
+
+  aMotionBOL := TMotionBOL.Create(FClipboard, FEngine);
+  try
+    aMotionBOL.Move(aCursorPosition, aCount, forEdition);
+  finally
+    aMotionBOL.Free;
+  end;
 
   if aCursorPosition.IsWhiteSpace then
     aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight or mmSkipStream);
@@ -333,8 +356,15 @@ end;
 { TMotionTrueEndOfLine }
 
 procedure TMotionTrueEOL.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  i: Integer;
 begin
   inherited;
+
+  // count of 1 is considered the same line
+  for i := 2 to aCount do
+    aCursorPosition.MoveRelative(1, 0);
+
   aCursorPosition.MoveEOL;
 end;
 
