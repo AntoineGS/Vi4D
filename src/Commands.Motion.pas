@@ -65,7 +65,7 @@ type
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
-  TMotionFindForward = class(TMotion, IMoveMotion, ISearchMotion)
+  TMotionFindForward = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
   public
@@ -75,7 +75,7 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TMotionFindBackwards = class(TMotion, IMoveMotion, ISearchMotion)
+  TMotionFindBackwards = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
   public
@@ -85,7 +85,7 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TMotionFindTilForward = class(TMotion, IMoveMotion, ISearchMotion)
+  TMotionFindTilForward = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
   public
@@ -95,7 +95,7 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TMotionFindTilBackwards = class(TMotion, IMoveMotion, ISearchMotion)
+  TMotionFindTilBackwards = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
   public
