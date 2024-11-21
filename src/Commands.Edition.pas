@@ -55,6 +55,10 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
+  TEditionYankTilEOL = class(TEdition)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
   TEditionReplaceChar = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
@@ -468,6 +472,29 @@ begin
   inherited;
   aBuffer := GetEditBuffer;
   aBuffer.Redo;
+end;
+
+{ TEditionYankTilEOL }
+
+procedure TEditionYankTilEOL.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  lPos: TOTAEditPos;
+  aMoveMotion: IMoveMotion;
+  aMotionTrueEOL: TMotionTrueEOL;
+begin
+  inherited;
+
+  aMotionTrueEOL := TMotionTrueEOL.Create(FClipboard, FEngine);
+  try
+    if not Supports(aMotionTrueEOL, IMoveMotion, aMoveMotion) then
+      Exit;
+
+    lPos := GetPositionForMove(aCursorPosition, aMoveMotion, true, aCount);
+    ApplyActionToSelection(aCursorPosition, baYank, true, lPos);
+  finally
+    aMotionTrueEOL.Free;
+  end;
+
 end;
 
 end.

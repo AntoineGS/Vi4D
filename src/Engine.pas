@@ -345,6 +345,7 @@ begin
   FEditionBindings.Add('S', TEditionDeleteLineInsert);
   FEditionBindings.Add('D', TEditionDeleteTilEOL);
   FEditionBindings.Add('C', TEditionChangeTilEOL);
+  FEditionBindings.Add('Y', TEditionYankTilEOL);
   FEditionBindings.Add('r', TEditionReplaceChar);
   FEditionBindings.Add('R', TEditionReplaceMode);
   FEditionBindings.Add('u', TEditionUndo);
