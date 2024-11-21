@@ -341,11 +341,12 @@ begin
     ApplyActionToSelection(aCursorPosition, aOperator.BlockAction, true, LSelection);
   end;
 
-  if aCursorPosition.SearchOptions.SearchText <> '' then
-  begin
-    aCursorPosition.SearchOptions.SearchText := '';
-    aCursorPosition.SearchAgain;
-  end;
+  // Meant to fix the di{ style commands that leave artefacts due to highlighting, but breaks things like #
+//  if aCursorPosition.SearchOptions.SearchText <> '' then
+//  begin
+//    aCursorPosition.SearchOptions.SearchText := '';
+//    aCursorPosition.SearchAgain;
+//  end;
 end;
 
 procedure TMotion.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
@@ -646,7 +647,7 @@ begin
   if aCursorPosition.IsWordCharacter then
     aCursorPosition.MoveCursor(mmSkipWord or mmSkipLeft)
   else
-    aCursorPosition.MoveCursor(mmSkipNonWord or mmSkipRight or mmSkipStream);
+    aCursorPosition.MoveCursor(mmSkipNonWord or mmSkipRight);
 
   aMotionEndOfWord := TMotionEndOfWord.Create(FClipboard, FEngine);
   try
