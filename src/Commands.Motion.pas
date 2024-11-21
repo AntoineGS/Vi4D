@@ -479,6 +479,7 @@ var
   foundCount: integer;
   aMotionBOL: TMotionBOL;
   relativePos: integer;
+  col: Integer;
 begin
   // only supporting a 1 character for now
   if Length(searchToken) > 1 then
@@ -492,6 +493,13 @@ begin
 
   if aEngine = nil then
     Raise Exception.Create('aEngine must be set in call to FindForward');
+
+  // handle case where the cursor is past the EOL, as is common in IDE
+  col := aCursorPosition.Column;
+  aCursorPosition.MoveEOL;
+
+  if col < aCursorPosition.Column then
+    aCursorPosition.Move(0, col);
 
   aMotionBOL := TMotionBOL.Create(aClipboard, aEngine);
   try
