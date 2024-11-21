@@ -150,8 +150,9 @@ type
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
-//  TMotionPreviousWholeWordUnderCursor = class(TMotion)
-//  end;
+  TMotionPreviousWholeWordUnderCursor = class(TMotion, IMoveMotion, IExecuteMotion)
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
+  end;
 
 //  TMotionParagraph = class(TViNavigationC)
 //  end;
@@ -1025,6 +1026,54 @@ begin
   FIAMotionKeyBindings.Add('w', TIAMotionWord);
 //  FViIAKeyBindings.Add('W', TIAWord);
 // missing s (sentence)
+end;
+
+{ TMotionPreviousWholeWordUnderCursor }
+
+procedure TMotionPreviousWholeWordUnderCursor.Move(aCursorPosition: IOTAEditPosition; aCount: integer;
+  forEdition: boolean);
+ var
+  LSelection: IOTAEditBlock;
+  lPos: TOTAEditPos;
+  i: integer;
+  aBuffer: IOTAEditBuffer;
+  aMotionEndOfWord: TMotionEndOfWord;
+begin
+  inherited;
+  aBuffer := GetEditBuffer;
+
+  if not aCursorPosition.IsWordCharacter then
+    aCursorPosition.MoveCursor(mmSkipNonWord or mmSkipLeft);
+
+  aCursorPosition.MoveCursor(mmSkipWord or mmSkipLeft);
+
+  aMotionEndOfWord := TMotionEndOfWord.Create(FClipboard, FEngine);
+  try
+    lPos := GetPositionForMove(aCursorPosition, aMotionEndOfWord, false);
+  finally
+    aMotionEndOfWord.Free;
+  end;
+
+  LSelection := aBuffer.EditBlock;
+  LSelection.Reset;
+  LSelection.BeginBlock;
+  LSelection.Extend(lPos.Line, lPos.Col + 1);
+  aCursorPosition.SearchOptions.SearchText := LSelection.Text;
+  LSelection.EndBlock;
+
+  aCursorPosition.Move(lPos.Line, lPos.Col);
+
+  aCursorPosition.SearchOptions.CaseSensitive := false;
+  aCursorPosition.SearchOptions.Direction := sdBackward;
+  aCursorPosition.SearchOptions.FromCursor := true;
+  aCursorPosition.SearchOptions.RegularExpression := false;
+  aCursorPosition.SearchOptions.WholeFile := true;
+  aCursorPosition.SearchOptions.WordBoundary := true;
+
+  for i := 1 to aCount do
+    aCursorPosition.SearchAgain;
+
+  aBuffer.TopView.MoveViewToCursor;
 end;
 
 initialization
