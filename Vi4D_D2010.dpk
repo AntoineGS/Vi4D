@@ -1,4 +1,4 @@
-package Vi4D;
+package Vi4D_D2010;
 
 {$R *.res}
 {$ALIGN 8}
