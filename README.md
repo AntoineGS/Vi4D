@@ -20,16 +20,15 @@ The plugin will automatically install a toolbutton on the Custom toolbar, which 
 ## Debugging
 
 Ensure the `Host application` under `Project Options` is set to your `bds.exe` path and run the bpl in debug mode.
-Note: This does not seem to work in recent versionof Delphi, it works great in D2010 though.
+Note: This does not seem to work in recent versions of Delphi, it works great in D2010 though.
 
 ## Roadmap
 
 - Add version-specific projects for the ones I have access to (2010, XE3, 12)
+- `V` and (maybe, though probably not) `<C-V>`
 - Support for Half Page and Page Up/Down, `gUU`, `guu`, (maybe) `=`
 - Complete the inside/around featuresets (paragraphs, tags, blocks, word)
-- Selected text behaviors (like selecting text and pressing d to delete selection)
 - Implement `/` searching
-- `V`, `v` and (maybe) `<C-V>`
 - Undoing operations that are more than one smaller operations require undoing each smaller operation, find a way to 'group' operations
 - Marks support
 - I Would LOVE to implement relative line numbers... not sure if it is possible though
@@ -45,6 +44,7 @@ Note: This does not seem to work in recent versionof Delphi, it works great in D
 - Undo and Redo do not bring the cursor back to the change
 - Around motions with things like `w` need to keep one of the two spaces around
 - After using some motions like Inside\Around when the cursor is before the text to change (like before the opening bracket), the view is changed with the cursor on the top line
+- `<<` and `>>` do not support count modifier
 
 ## Particularities
 
