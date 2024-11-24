@@ -3,14 +3,14 @@
 ## About The Project
 
 This package provides Vi keybinds for the Delphi IDE. This project is forked from the abandoned [Vi-Delphi](https://github.com/Tanikai/vi-delphi) project which is based on [VIDE](https://github.com/petdr/vide) repository.
-Thank you to both of those projects for the ideas and foundations. :)
+Thank you to both of those projects for the ideas and foundation. :)
 
 ## Installation
 
 - Clone the repo
-- Open the 'Vi4D.dproj' project file in Delphi
+- Open the 'Vi4D_XXXXX.dproj' project file in Delphi
 - Select the 'Release' build configuration
-- Right-click the 'Vi4D.bpl' entry in the project view
+- Right-click the 'Vi4D_XXXXX.bpl' entry in the project view
 - Click on 'Install'
 
 ### IDE Toolbar
@@ -24,7 +24,6 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 
 ## Roadmap
 
-- Add version-specific projects for the ones I have access to (2010, XE3, 12)
 - `V` and (maybe, though probably not) `<C-V>`
 - Support for Half Page and Page Up/Down, `gUU`, `guu`, (maybe) `=`
 - Complete the inside/around featuresets (paragraphs, tags, blocks, word)
@@ -35,10 +34,9 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 - Better registry support (currently only one entry is supported)
 - Add more `:` commands and require enter key to trigger the parsing and move them to their own keybinding logic, starting with `!`
 - Configurable bindings
-- Look into merging the duplicated `ApplyActionToSelection` methods
 - Look at bringing back the DLL debugging doc and project from the original repo, as it seems for newer versions of Delphi debugging bds.exe does not work
 
-## Known issues
+## Known issues (plan to address)
 
 - `r` does not go back to Normal mode after entering the replacement character
 - Undo and Redo do not bring the cursor back to the change
@@ -46,7 +44,7 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 - After using some motions like Inside\Around when the cursor is before the text to change (like before the opening bracket), the view is changed with the cursor on the top line
 - `<<` and `>>` do not support count modifier
 
-## Particularities
+## Particularities (things that are not planned)
 
 - `L` goes to last -1 line, due to IDE auto-scrolling if we to to the last line
 - `U` is used to Redo, instead of the classic `<C-R>`
