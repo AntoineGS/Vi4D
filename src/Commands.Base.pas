@@ -9,14 +9,15 @@ uses
   Clipboard;
 
 type
-  TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase);
+  TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baVisual);
   TViMode = (mInactive, mNormal, mInsert, mVisual);
   TDirection = (dForward, dBack);
 
   IEngine = interface
   ['{F2D38261-228B-4CC2-9D86-EC9D39CA63A8}']
+    function GetViMode: TViMode;
     procedure SetViMode(ANewMode: TViMode);
-    property CurrentViMode: TViMode write SetViMode;
+    property CurrentViMode: TViMode read GetViMode write SetViMode;
     procedure ExecuteLastCommand;
   end;
 
@@ -28,6 +29,8 @@ type
         LPOS: TOTAEditPos); overload;
     procedure ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
         LSelection: IOTAEditBlock); overload;
+    procedure ApplyActionToSelectionInt(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
+      aSelectionFunc: TFunc<IOTAEditBlock>);
   public
     constructor Create(aClipboard: TClipboard; aEngine: IEngine); reintroduce; virtual;
   end;
@@ -38,7 +41,9 @@ type
 implementation
 
 uses
-  NavUtils;
+  NavUtils,
+  StrUtils,
+  Commands.Edition; // not great design to have circular deps
 
 procedure ChangeIndentation(aCursorPosition: IOTAEditPosition; ADirection: TDirection);
 var
@@ -132,75 +137,80 @@ end;
 
 procedure TCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
     LPOS: TOTAEditPos);
-var
-  LSelection: IOTAEditBlock;
-  LTemp: String;
-  aBuffer: IOTAEditBuffer;
-  restoreCustorPosition: Boolean;
 begin
-  if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to ChangeIndentation');
+  ApplyActionToSelectionInt(aCursorPosition, AAction, AIsLine,
+      function: IOTAEditBlock
+      var
+        aBuffer: IOTAEditBuffer;
+      begin
+        aBuffer := GetEditBuffer;
+        result := aBuffer.EditBlock;
 
-  restoreCustorPosition := AAction in [baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase];
+        // not ideal to ninja it here for selection but for now it holds up, TBD if a better approach will be needed
+        // we already have something selected
+        if result.Size <> 0 then
+          Exit;
 
-  if restoreCustorPosition then
-    aCursorPosition.Save;
-  try
-    aBuffer := GetEditBuffer;
-    LSelection := aBuffer.EditBlock;
-    LSelection.Reset;
-    LSelection.BeginBlock;
-    LSelection.Extend(LPos.Line, LPos.Col);
-    FClipboard.SetCurrentRegisterIsLine(AIsLine);
-    LTemp := LSelection.Text;
-    FClipboard.SetCurrentRegisterText(LTemp);
-
-    case AAction of
-      baDelete, baChange:
-        LSelection.Delete;
-      baYank:
-        LSelection.Reset;
-      baIndentLeft:
-        ChangeIndentation(aCursorPosition, dBack);
-      baIndentRight:
-        ChangeIndentation(aCursorPosition, dForward);
-      baUppercase:
-        ChangeCase(aCursorPosition, true);
-      baLowercase:
-        ChangeCase(aCursorPosition, false);
-    end;
-
-    if AAction = baChange then
-      FEngine.currentViMode := mInsert;
-
-    LSelection.EndBlock;
-  finally
-    if restoreCustorPosition then
-      aCursorPosition.Restore;
-  end;
+        result.Reset;
+        result.BeginBlock;
+        result.Extend(LPos.Line, LPos.Col);
+      end);
 end;
 
 procedure TCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
     LSelection: IOTAEditBlock);
+begin
+  ApplyActionToSelectionInt(aCursorPosition, AAction, AIsLine,
+      function: IOTAEditBlock
+      begin
+        result := LSelection;
+      end);
+end;
+
+procedure TCommand.ApplyActionToSelectionInt(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
+    aSelectionFunc: TFunc<IOTAEditBlock>);
 var
   LTemp: String;
   restoreCustorPosition: Boolean;
+  LSelection: IOTAEditBlock;
+  aEditionPreviousLine: TEditionPreviousLine;
 begin
   if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to ChangeIndentation');
+    Raise Exception.Create('aCursorPosition must be set in call to ApplyActionToSelection');
+
+  if not Assigned(aSelectionFunc) then
+    Raise Exception.Create('aSelectionFunc must be set in call to ApplyActionToSelection');
 
   restoreCustorPosition := AAction in [baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase];
 
   if restoreCustorPosition then
     aCursorPosition.Save;
   try
-    FClipboard.SetCurrentRegisterIsLine(AIsLine);
+    LSelection := aSelectionFunc();
     LTemp := LSelection.Text;
+    FClipboard.SetCurrentRegisterIsLine(AIsLine);
     FClipboard.SetCurrentRegisterText(LTemp);
 
     case AAction of
-      baDelete, baChange:
+      baDelete:
         LSelection.Delete;
+      baChange:
+        begin
+          LSelection.Delete;
+
+          if AIsLine then
+          begin
+            // will call 'O' to add a new line
+            aEditionPreviousLine := TEditionPreviousLine.Create(FClipboard, FEngine);
+            try
+              aEditionPreviousLine.Execute(aCursorPosition, 1);
+            finally
+              aEditionPreviousLine.Free;
+            end;
+          end;
+
+          FEngine.currentViMode := mInsert;
+        end;
       baYank:
         LSelection.Reset;
       baIndentLeft:
@@ -211,11 +221,9 @@ begin
         ChangeCase(aCursorPosition, true);
       baLowercase:
         ChangeCase(aCursorPosition, false);
+      baVisual:
+        FEngine.currentViMode := mVisual;
     end;
-
-    if AAction = baChange then
-      FEngine.currentViMode := mInsert;
-
   finally
     if restoreCustorPosition then
       aCursorPosition.Restore;

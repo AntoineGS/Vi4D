@@ -58,12 +58,13 @@ type
     procedure HandleChar(const AChar: Char);
     procedure ResetCurrentOperation;
     procedure ExecuteLastCommand;
+    function GetViMode: TViMode;
     procedure SetViMode(ANewMode: TViMode);
     procedure SetOnCaptionChanged(ANewProc: TCaptionChangeProc);
     procedure OnCommandChanged(aCommand: string);
     procedure DoApplicationIdle(Sender: TObject; var Done: Boolean);
   public
-    property currentViMode: TViMode read FCurrentViMode write SetViMode;
+    property currentViMode: TViMode read GetViMode write SetViMode;
     property onCaptionChanged: TCaptionChangeProc write SetOnCaptionChanged;
 
     constructor Create;
@@ -170,7 +171,8 @@ begin
   case (currentViMode) of
     mInactive:
       Exit;
-    mNormal:
+
+    mNormal, mVisual:
       begin
         if (ssCtrl in AShift) or (ssAlt in AShift) then
           Exit;
@@ -194,7 +196,7 @@ begin
           AHandled := True;
         end;
       end;
-  else // Insert or Visual mode
+  else // Insert
     begin
       if (AKey = VK_ESCAPE) then
       begin
@@ -219,7 +221,10 @@ end;
 
 procedure TEngine.ResetCurrentOperation;
 begin
-  currentViMode := mNormal;
+  // if we are in visual mode and we have an outstanding command to match (like the wrong key), we clear it and stay in visual
+  if not ((currentViMode = mVisual) and (FCurrentOperation.CommandToMatch <> '')) then
+    currentViMode := mNormal;
+
   FCurrentOperation.Reset(false);
 end;
 
@@ -296,6 +301,7 @@ begin
   FOperatorBindings.Add('gU', TOperatorUppercase);
   // gUU for line, guu for line
   FOperatorBindings.Add('gu', TOperatorLowercase);
+  FOperatorBindings.Add('v', TOperatorVisualMode);
 
   // motions
   FMotionBindings.Add('w', TMotionWord);
@@ -357,6 +363,7 @@ begin
   FEditionBindings.Add('J', TEditionJoinLines);
   FEditionBindings.Add('.', TEditionRepeatLastCommand);
   FEditionBindings.Add('~', TEditionToggleCase);
+  FEditionBindings.Add('V', TEditionVisualLineMode);
 
   FEditionBindings.Add(':w', TEditionSaveFile);
   FEditionBindings.Add(':q', TEditionCloseFile);
@@ -364,6 +371,11 @@ begin
 //To Migrate
 //  FViKeybinds.Add('m', ActionSetMark);  // takes in the mark char
 //  FViKeybinds.Add('/', ActionSearch);
+end;
+
+function TEngine.GetViMode: TViMode;
+begin
+  result := FCurrentViMode;
 end;
 
 procedure TEngine.SetViMode(ANewMode: TViMode);

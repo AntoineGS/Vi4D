@@ -103,6 +103,10 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
+  TEditionVisualLineMode = class(TEdition)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
   TEditionSaveFile = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
@@ -110,6 +114,8 @@ type
   TEditionCloseFile = class(TEdition)
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
+
+
 
 implementation
 
@@ -494,6 +500,14 @@ begin
   finally
     aMotionTrueEOL.Free;
   end;
+
+end;
+
+{ TEditionVisualLineMode }
+
+procedure TEditionVisualLineMode.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+begin
+  inherited;
 
 end;
 

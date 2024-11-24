@@ -238,9 +238,16 @@ end;
 { TMotionRight }
 
 procedure TMotionRight.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  aBuffer: IOTAEditBuffer;
 begin
   inherited;
-  aCursorPosition.MoveRelative(0, aCount);
+  aBuffer := GetEditBuffer;
+
+//  if FEngine.CurrentViMode = mVisual then
+//    aBuffer.EditBlock.ExtendRelative(0, aCount)
+//  else
+    aCursorPosition.MoveRelative(0, aCount);
 end;
 
 { TMotionStartOfLine }
@@ -316,11 +323,15 @@ begin
     if aOperator = nil then
     begin
       lPos := GetPositionForMove(aCursorPosition, aNormalMotion, false, aCount);
-      aCursorPosition.Move(lPos.Line, lPos.Col);
+
+      if FEngine.CurrentViMode = mVisual then
+        GetEditBuffer.EditBlock.Extend(lPos.Line, lPos.Col)
+      else
+        aCursorPosition.Move(lPos.Line, lPos.Col);
     end
     else
     begin
-      fullLines := (self.ClassType = TMotionDown) or (self.ClassType = TMotionUp);
+      fullLines := (FEngine.CurrentViMode <> mVisual) and ((self.ClassType = TMotionDown) or (self.ClassType = TMotionUp));
 
       // if full lines we need to ensure to grab the full line on which we are + the x number in the direction given
       if fullLines then
@@ -331,7 +342,7 @@ begin
           aCursorPosition.MoveEOL;
       end;
 
-      lPos := GetPositionForMove(aCursorPosition, aNormalMotion, true, aCount, fullLines);
+      lPos := GetPositionForMove(aCursorPosition, aNormalMotion, (FEngine.CurrentViMode <> mVisual), aCount, fullLines);
       ApplyActionToSelection(aCursorPosition, aOperator.BlockAction, fullLines, lPos);
     end;
   end

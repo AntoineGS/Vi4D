@@ -20,7 +20,7 @@ type
     FCommandToMatch: string; // to allow multi-character actions like gg, gU, etc.
     FOperator: TOperator;
     FMotion: TCommand;
-    FCount: integer; // could be `i` or `a` instead
+    FCount: integer;
     FEngine: IEngine;
     FClipboard: TClipboard;
     FCountSet: boolean;
@@ -50,6 +50,9 @@ type
   end;
 
 implementation
+
+uses
+  NavUtils;
 
 function TOperation.TryAddToCount(const aString: string): boolean;
 var
@@ -131,6 +134,7 @@ var
   aOperator: TOperator;
   aMotionDown: TMotionDown;
   lpos: TOTAEditPos;
+  aSelection: IOTAEditBlock;
 begin
   if aOperatorClass = nil then
     Raise Exception.Create('aOperatorCClass must be set in call to SetAndExecuteIfComplete');
@@ -141,10 +145,26 @@ begin
   aMotionDown := nil;
   aOperator := aOperatorClass.Create(FClipboard, FEngine);
   try
+    // special cases for Visual mode
+    if aOperatorClass = TOperatorVisualMode then
+      if FEngine.CurrentViMode = mVisual then
+        FEngine.CurrentViMode := mNormal
+      else
+        FEngine.CurrentViMode := mVisual;
+
     if FOperator = nil then
     begin
       FOperator := aOperator;
+      // dont free it in the finally
       aOperator := nil;
+      aSelection := GetEditBuffer.EditBlock;
+
+      if (aSelection.Size <> 0) then
+      begin
+        FOperator.Execute(aCursorPosition, lpos, false);
+        Reset(true);
+      end;
+
       exit;
     end;
 
@@ -154,8 +174,9 @@ begin
       // go to BOL, then select whole line using Down, then execute and pass the selection
       aCursorPosition.MoveBOL;
       aMotionDown := TMotionDown.Create(FClipboard, FEngine);
+      // I would probably need to pass the motion and count to the operator here
       lpos := GetPositionForMove(aCursorPosition, aMotionDown, true, FCount);
-      FOperator.Execute(aCursorPosition, lpos);
+      FOperator.Execute(aCursorPosition, lpos, true);
     end;
   finally
     aOperator.Free;

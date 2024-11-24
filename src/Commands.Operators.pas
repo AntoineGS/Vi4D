@@ -14,7 +14,7 @@ type
   protected
     function GetBlockAction: TBlockAction; virtual;
   public
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); virtual;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); virtual;
     property BlockAction: TBlockAction read GetBlockAction;
   end;
 
@@ -27,27 +27,27 @@ type
   end;
 
   TOperatorDelete = class(TOperator)
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
   TOperatorYank = class(TOperator)
     function GetBlockAction: TBlockAction; override;
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
   TOperatorChange = class(TOperator)
     function GetBlockAction: TBlockAction; override;
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
   TOperatorIndentRight = class(TOperator)
     function GetBlockAction: TBlockAction; override;
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
   TOperatorIndentLeft = class(TOperator)
     function GetBlockAction: TBlockAction; override;
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
   TOperatorAutoIndent = class(TOperator)
@@ -55,12 +55,17 @@ type
 
   TOperatorUppercase = class(TOperator)
     function GetBlockAction: TBlockAction; override;
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
   TOperatorLowercase = class(TOperator)
     function GetBlockAction: TBlockAction; override;
-    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos); override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
+  end;
+
+  TOperatorVisualMode = class(TOperator)
+    function GetBlockAction: TBlockAction; override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
   function CharAtRelativeLocation(aCursorPosition: IOTAEditPosition; ACol: Integer): TCharClass;
@@ -79,6 +84,7 @@ function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: IM
 var
   LPos: TOTAEditPos;
   currLine: integer;
+  aSelection: IOTAEditBlock;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to TViTextObjectC.GetPositionForMove');
@@ -86,24 +92,30 @@ begin
   if aNormalMotion = nil then
     Raise Exception.Create('aNormalMotion must be set in call to TViTextObjectC.GetPositionForMove');
 
-  currLine := aCursorPosition.Row;
+  aSelection := GetEditBuffer.EditBlock;
+  aSelection.Save;
   aCursorPosition.Save;
-  aNormalMotion.Move(aCursorPosition, ACount, forEdition);
+  try
+    currLine := aCursorPosition.Row;
+    aNormalMotion.Move(aCursorPosition, ACount, forEdition);
 
-  if fullLines then
-  begin
-    aNormalMotion.Move(aCursorPosition, 1, forEdition);
+    if fullLines then
+    begin
+      aNormalMotion.Move(aCursorPosition, 1, forEdition);
 
-    // we are lower
-    if aCursorPosition.Row > currLine then
-      aCursorPosition.MoveBOL
-    else //higher
-      aCursorPosition.MoveEOL;
+      // we are lower
+      if aCursorPosition.Row > currLine then
+        aCursorPosition.MoveBOL
+      else //higher
+        aCursorPosition.MoveEOL;
+    end;
+
+    LPos.Col := aCursorPosition.Column;
+    LPos.Line := aCursorPosition.Row;
+  finally
+    aCursorPosition.Restore;
+    aSelection.Restore;
   end;
-
-  LPos.Col := aCursorPosition.Column;
-  LPos.Line := aCursorPosition.Row;
-  aCursorPosition.Restore;
   result := LPos;
 end;
 
@@ -125,7 +137,7 @@ begin
   aCursorPosition.Restore;
 end;
 
-procedure TOperator.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperator.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set to call to TViOperatorC.Execute');
@@ -133,10 +145,10 @@ end;
 
 { TOperatorYank }
 
-procedure TOperatorYank.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorYank.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   inherited;
-  ApplyActionToSelection(aCursorPosition, baYank, True, lPos);
+  ApplyActionToSelection(aCursorPosition, baYank, fullLine, lPos);
 end;
 
 function TOperatorYank.GetBlockAction: TBlockAction;
@@ -144,14 +156,14 @@ begin
   result := baYank;
 end;
 
-procedure TOperatorDelete.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorDelete.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   inherited;
 
 //  if not FInRepeatChange then
 //    SavePreviousAction;
 
-  ApplyActionToSelection(aCursorPosition, baDelete, True, lPos);
+  ApplyActionToSelection(aCursorPosition, baDelete, fullLine, lPos);
 end;
 
 function TOperator.GetBlockAction: TBlockAction;
@@ -161,18 +173,10 @@ end;
 
 { TOperatorChange }
 
-procedure TOperatorChange.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
-var
-  aEditionPreviousLine: TEditionPreviousLine;
+procedure TOperatorChange.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   inherited;
-  ApplyActionToSelection(aCursorPosition, baDelete, True, lPos);
-  aEditionPreviousLine := TEditionPreviousLine.Create(FClipboard, FEngine);
-  try
-    aEditionPreviousLine.Execute(aCursorPosition, 1);
-  finally
-    aEditionPreviousLine.Free;
-  end;
+  ApplyActionToSelection(aCursorPosition, baChange, fullLine, lPos);
 end;
 
 function TOperatorChange.GetBlockAction: TBlockAction;
@@ -182,7 +186,7 @@ end;
 
 { TOperatorIndentLeft }
 
-procedure TOperatorIndentLeft.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorIndentLeft.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   inherited;
   ChangeIndentation(aCursorPosition, dBack);
@@ -195,7 +199,7 @@ end;
 
 { TOperatorIndentRight }
 
-procedure TOperatorIndentRight.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorIndentRight.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   inherited;
   ChangeIndentation(aCursorPosition, dForward);
@@ -208,10 +212,10 @@ end;
 
 { TOperatorUppercase }
 
-procedure TOperatorUppercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorUppercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   inherited;
-  ApplyActionToSelection(aCursorPosition, baUppercase, True, lPos);
+  ApplyActionToSelection(aCursorPosition, baUppercase, fullLine, lpos);
 end;
 
 function TOperatorUppercase.GetBlockAction: TBlockAction;
@@ -221,15 +225,28 @@ end;
 
 { TOperatorLowercase }
 
-procedure TOperatorLowercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos);
+procedure TOperatorLowercase.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
 begin
   inherited;
-  ApplyActionToSelection(aCursorPosition, baLowercase, True, lPos);
+  ApplyActionToSelection(aCursorPosition, baLowercase, fullLine, lPos);
 end;
 
 function TOperatorLowercase.GetBlockAction: TBlockAction;
 begin
   result := baLowercase;
+end;
+
+{ TOperatorVisualMode }
+
+procedure TOperatorVisualMode.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
+begin
+  inherited;
+  FEngine.CurrentViMode := mNormal;
+end;
+
+function TOperatorVisualMode.GetBlockAction: TBlockAction;
+begin
+  result := baVisual;
 end;
 
 end.
