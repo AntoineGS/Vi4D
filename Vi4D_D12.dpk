@@ -1,0 +1,46 @@
+package Vi4D_D12;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  designide;
+
+contains
+  Commands.Motion in 'src\Commands.Motion.pas',
+  Vi4DWizard in 'src\Vi4DWizard.pas',
+  Engine in 'src\Engine.pas',
+  Commands.Operators in 'src\Commands.Operators.pas',
+  Commands.Base in 'src\Commands.Base.pas',
+  Operation in 'src\Operation.pas',
+  NavUtils in 'src\NavUtils.pas',
+  Clipboard in 'src\Clipboard.pas',
+  Commands.Edition in 'src\Commands.Edition.pas',
+  Commands.IAMotion in 'src\Commands.IAMotion.pas';
+
+end.
