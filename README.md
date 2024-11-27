@@ -3,15 +3,25 @@
 ## About The Project
 
 This package provides Vi keybinds for the Delphi IDE. This project is forked from the abandoned [Vi-Delphi](https://github.com/Tanikai/vi-delphi) project which is based on [VIDE](https://github.com/petdr/vide) repository.
-Thank you to both of those projects for the ideas and foundation. :)
+Thanks to both of those projects for the ideas and foundation. :)
 
 ## Installation
 
 - Clone the repo
-- Open the 'Vi4D_XXXXX.dproj' project file in Delphi
-- Select the 'Release' build configuration
-- Right-click the 'Vi4D_XXXXX.bpl' entry in the project view
+- Open the `Vi4D_XXXXX.dproj` project file in Delphi (where 'XXXXX' is your version of Delphi)
+- Select the `Release` build configuration
+- Right-click the `Vi4D_XXXXX.bpl` entry in the project view
 - Click on 'Install'
+
+## Relative Line Numbers
+
+CnWizards ([repo](https://github.com/cnpack/cnwizards)) maintainers were kind enough to merge my PR to add relative line numbers and I highly recommend you use it. To use it:
+
+- Install [CnWizards](https://www.cnpack.org/showlist.php?id=39&lang=en), any version from 1.5.1.1221
+- In the IDE, click on the `CnPack` menu, then `Options`
+- In the `Wizard Settings` tab, find `Editor Enhancements`, ensure it is `Enabled` and click on `Settings`
+- Under the `Line Number / Toolbar` tab, activate `Show Line Number in Editor.` and then activate `Show Relative Line Numbers.`
+- Voila you now have relative line numbers in Delphi!
 
 ### IDE Toolbar
 
