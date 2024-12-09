@@ -247,7 +247,7 @@ begin
         FEngine.EditKeyDown(Key, ScanCode, Shift, Msg, Handled);
     end;
   end
-  else if (Msg.message = WM_LBUTTONDOWN) then
+  else if (Msg.message = WM_LBUTTONUP) then
     FEngine.LButtonDown;
 
   // Has to happen after UI is displayed
