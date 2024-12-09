@@ -52,7 +52,6 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 - Undo and Redo do not bring the cursor back to the change
 - Around motions with things like `w` need to keep one of the two spaces around
 - After using some motions like Inside\Around when the cursor is before the text to change (like before the opening bracket), the view is changed with the cursor on the top line
-- `<<` and `>>` do not support count modifier
 
 ## Particularities (things that are not planned)
 
