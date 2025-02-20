@@ -182,7 +182,8 @@ begin
           Exit;
 
         LIsLetter := ((AKey >= ord('A')) and (AKey <= ord('Z'))) or ((AKey >= ord('0')) and (AKey <= ord('9')));
-        LIsSymbol := ((AKey >= 186) and (AKey <= 192)) or ((AKey >= 219) and (AKey <= 222)) or (AKey = VK_SPACE);
+        LIsSymbol := ((AKey >= 186) and (AKey <= 192)) or ((AKey >= 219) and (AKey <= 222)) or (AKey = VK_SPACE)
+            or (AKey = VK_RETURN) or (AKey = 8 {backspace});
 
         if LIsLetter or LIsSymbol then
         begin
@@ -254,7 +255,17 @@ var
   len: integer;
   searchString: string;
 begin
-  FCurrentOperation.AddToCommandToMatch(aChar);
+  // Backspace
+  if aChar = #8 then
+  begin
+    FCurrentOperation.RemoveLastCharFromCommandToMatch;
+    Exit;
+  end;
+
+  // Return
+  if aChar <> #13 then
+    FCurrentOperation.AddToCommandToMatch(aChar);
+
   commandToMatch := FCurrentOperation.CommandToMatch;
   aBuffer := GetEditBuffer;
   keepChar := False;

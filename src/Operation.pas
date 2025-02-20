@@ -40,6 +40,7 @@ type
     procedure SetAndExecuteIfComplete(aExClass: TExClass); overload;
 
     procedure AddToCommandToMatch(const aString: string);
+    procedure RemoveLastCharFromCommandToMatch;
     procedure ClearCommandToMatch;
     procedure Reset(saveLastOperation: boolean);
     procedure AddToCount(aValue: Integer);
@@ -254,6 +255,21 @@ end;
 procedure TOperation.SetOnCommandChanged(aProc: TCommandChangedProc);
 begin
   FCommandChangedProc := aProc;
+end;
+
+procedure TOperation.RemoveLastCharFromCommandToMatch;
+var
+  newCommand: string;
+begin
+  if Length(FCommandToMatch) > 0 then
+    SetLength(FCommandToMatch, Length(FCommandToMatch) - 1);
+
+  if Length(FCommand) > 0 then
+  begin
+    newCommand := FCommand;
+    SetLength(newCommand, Length(newCommand) - 1);
+    SetCommand(newCommand);
+  end;
 end;
 
 procedure TOperation.Reset(saveLastOperation: boolean);
