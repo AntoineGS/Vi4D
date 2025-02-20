@@ -223,7 +223,7 @@ begin
     Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
 
   if aEditionClass = nil then
-    Raise Exception.Create('aEditCClass must be set in call to SetAndExecuteIfComplete');
+    Raise Exception.Create('aEditClass must be set in call to SetAndExecuteIfComplete');
 
   aEdition := aEditionClass.Create(FClipboard, FEngine);
   try
