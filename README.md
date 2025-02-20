@@ -40,9 +40,8 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 - Implement `/` searching
 - Undoing operations that are more than one smaller operations require undoing each smaller operation, find a way to 'group' operations
 - Marks support
-- I Would LOVE to implement relative line numbers... not sure if it is possible though
 - Better registry support (currently only one entry is supported)
-- Add more `:` commands and require enter key to trigger the parsing and move them to their own keybinding logic, starting with `!`
+- :s/_/_
 - Configurable bindings
 - Look at bringing back the DLL debugging doc and project from the original repo, as it seems for newer versions of Delphi debugging bds.exe does not work
 
