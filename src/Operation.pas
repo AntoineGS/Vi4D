@@ -8,6 +8,7 @@ uses
   Commands.Operators,
   Commands.Motion,
   Commands.Edition,
+  Commands.Ex,
   SysUtils,
   ToolsAPI,
   Clipboard;
@@ -36,6 +37,7 @@ type
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aMotionClass: TMotionClass;
         searchToken: string = ''); overload;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aEditionClass: TEditionClass); overload;
+    procedure SetAndExecuteIfComplete(aExClass: TExClass); overload;
 
     procedure AddToCommandToMatch(const aString: string);
     procedure ClearCommandToMatch;
@@ -227,6 +229,23 @@ begin
     aEdition.Execute(aCursorPosition, FCount);
   finally
     aEdition.Free;
+  end;
+
+  Reset(false);
+end;
+
+procedure TOperation.SetAndExecuteIfComplete(aExClass: TExClass);
+var
+  aEx: TEx;
+begin
+  if aExClass = nil then
+    Raise Exception.Create('aExClass must be set in call to SetAndExecuteIfComplete');
+
+  aEx := aExClass.Create(FClipboard, FEngine);
+  try
+    aEx.Execute;
+  finally
+    aEx.Free;
   end;
 
   Reset(false);

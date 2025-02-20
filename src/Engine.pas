@@ -32,6 +32,7 @@ uses
   Commands.Motion,
   Commands.Operators,
   Commands.Edition,
+  Commands.Ex,
   Operation,
   Clipboard,
   AppEvnts;
@@ -49,6 +50,7 @@ type
     FOperatorBindings: TDictionary<string, TOperatorClass>;
     FMotionBindings: TDictionary<string, TMotionClass>;
     FEditionBindings: TDictionary<string, TEditionClass>;
+    FExBindings: TDictionary<string, TExClass>;
     FClipboard: TClipboard;
     FUpdateActionCaption: boolean;
     FEvents: TApplicationEvents;
@@ -113,6 +115,7 @@ begin
   FOperatorBindings := TDictionary<string, TOperatorClass>.Create;
   FMotionBindings := TDictionary<string, TMotionClass>.Create;
   FEditionBindings := TDictionary<string, TEditionClass>.Create;
+  FExBindings := TDictionary<string, TExClass>.Create;
   FClipboard := TClipboard.Create;
   FCurrentOperation := TOperation.Create(self, FClipboard);
   FCurrentOperation.onCommandChanged := OnCommandChanged;
@@ -126,6 +129,7 @@ begin
   FEvents.Free;
   FCurrentOperation.Free;
   FClipboard.Free;
+  FExBindings.Free;
   FEditionBindings.Free;
   FMotionBindings.Free;
   FOperatorBindings.Free;
@@ -242,6 +246,7 @@ var
   aOperatorClass: TOperatorClass;
   aMotionClass: TMotionClass;
   aEditionClass: TEditionClass;
+  aExClass: TExClass;
   commandToMatch: string;
   keepChar: boolean;
   aBuffer: IOTAEditBuffer;
@@ -263,6 +268,8 @@ begin
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aMotionClass)
   else if (FCurrentOperation.OperatorCommand = nil) and FEditionBindings.TryGetValue(commandToMatch, aEditionClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aEditionClass)
+  else if (aChar = #13) and (FExBindings.TryGetValue(commandToMatch, aExClass)) then
+    FCurrentOperation.SetAndExecuteIfComplete(aExClass)
   else
   begin
     keepChar := True;
@@ -363,10 +370,19 @@ begin
   FEditionBindings.Add('J', TEditionJoinLines);
   FEditionBindings.Add('.', TEditionRepeatLastCommand);
   FEditionBindings.Add('~', TEditionToggleCase);
-  FEditionBindings.Add('V', TEditionVisualLineMode);
 
-  FEditionBindings.Add(':w', TEditionSaveFile);
-  FEditionBindings.Add(':q', TEditionCloseFile);
+  // todo: this can probably get refactored to be more generic, eg a is all and can be added to most commands
+  // add :w* to take in a filename
+  FExBindings.Add(':w', TExSaveFile);
+  FExBindings.Add(':wa', TExSaveAllFiles);
+  FExBindings.Add(':wq', TExSaveAndCloseFile);
+  FExBindings.Add(':xa', TExSaveAndCloseAllFiles);
+  FExBindings.Add(':wqa', TExSaveAndCloseAllFiles);
+  FExBindings.Add(':q', TExCloseFile);
+  FExBindings.Add(':qa', TExCloseAllFiles);
+  FExBindings.Add(':q!', TExForceCloseFile);
+  FExBindings.Add(':qa!', TExForceCloseAllFiles);
+//  FExBindings.Add('/', TExSearch);
 
 //To Migrate
 //  FViKeybinds.Add('m', ActionSetMark);  // takes in the mark char

@@ -107,16 +107,6 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TEditionSaveFile = class(TEdition)
-    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
-  end;
-
-  TEditionCloseFile = class(TEdition)
-    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
-  end;
-
-
-
 implementation
 
 uses
@@ -438,35 +428,6 @@ begin
   LSelection.Extend(aCursorPosition.Row, aCursorPosition.Column + aCount);
   LSelection.ToggleCase;
   LSelection.EndBlock;
-end;
-
-{ TEditionSaveFile }
-
-procedure TEditionSaveFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
-var
-  aBuffer: IOTAEditBuffer;
-begin
-  inherited;
-  aBuffer := GetEditBuffer;
-
-  if aBuffer.IsModified then
-    aBuffer.Module.Save(False, True);
-end;
-
-{ TEditionCloseFile }
-
-procedure TEditionCloseFile.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
-var
-  aBuffer: IOTAEditBuffer;
-begin
-  inherited;
-  aBuffer := GetEditBuffer;
-
-//  add modifiers to :X commands too, ie :q! before activating the below, for now itll prompt if not saved
-//  if aBuffer.IsModified then
-//    raise Exception.Create('File has pending changes, use :w to save changes');
-
-  aBuffer.Module.CloseModule(False);
 end;
 
 { TEditionRedo }
