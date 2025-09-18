@@ -155,6 +155,12 @@ begin
       else
         FEngine.CurrentViMode := mVisual;
 
+    if aOperatorClass = TOperatorVisualLineMode then
+      if FEngine.CurrentViMode = mVisualLine then
+        FEngine.CurrentViMode := mNormal
+      else
+        FEngine.CurrentViMode := mVisualLine;
+
     if FOperator = nil then
     begin
       FOperator := aOperator;

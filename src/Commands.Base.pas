@@ -9,8 +9,8 @@ uses
   Clipboard;
 
 type
-  TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baVisual);
-  TViMode = (mInactive, mNormal, mInsert, mVisual);
+  TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baVisual, baVisualLine);
+  TViMode = (mInactive, mNormal, mInsert, mVisual, mVisualLine);
   TDirection = (dForward, dBack);
 
   IEngine = interface
@@ -223,6 +223,8 @@ begin
         ChangeCase(aCursorPosition, false);
       baVisual:
         FEngine.currentViMode := mVisual;
+      baVisualLine:
+        FEngine.CurrentViMode := mVisualLine;
     end;
   finally
     if restoreCustorPosition then

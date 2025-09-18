@@ -135,7 +135,7 @@ begin
   case FEngine.currentViMode of
     mNormal: aColor := WebColorStrToColor('#61afef');
     mInsert: aColor := WebColorStrToColor('#c678dd');
-    mVisual: aColor := WebColorStrToColor('#d19a66');
+    mVisual, mVisualLine: aColor := WebColorStrToColor('#d19a66');
   end;
 
   if aColor = clNone then

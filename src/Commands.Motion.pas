@@ -326,6 +326,8 @@ begin
 
       if FEngine.CurrentViMode = mVisual then
         GetEditBuffer.EditBlock.Extend(lPos.Line, lPos.Col)
+      else if FEngine.CurrentViMode = mVisualLine then
+        GetEditBuffer.EditBlock.Extend(lPos.Line, 0)
       else
         aCursorPosition.Move(lPos.Line, lPos.Col);
     end

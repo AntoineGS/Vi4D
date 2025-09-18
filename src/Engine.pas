@@ -95,6 +95,7 @@ begin
     mNormal: mode := 'NORMAL';
     mInsert: mode := 'INSERT';
     mVisual: mode := 'VISUAL';
+    mVisualLine: mode := 'VISUAL LINE'
   end;
   command := aCommand;
   result := Format('   %s', [mode]);
@@ -143,7 +144,7 @@ begin
   LEditBuffer := GetEditBuffer;
 
   if LEditBuffer <> nil then
-    LEditBuffer.EditOptions.UseBriefCursorShapes := (currentViMode = mNormal) or (currentViMode = mVisual);
+    LEditBuffer.EditOptions.UseBriefCursorShapes := (currentViMode = mNormal) or (currentViMode = mVisual) or (currentViMode = mVisualLine);
 end;
 
 procedure TEngine.EditChar(AKey, AScanCode: Word; AShift: TShiftState; AMsg: TMsg; var AHandled: Boolean);
@@ -176,7 +177,7 @@ begin
     mInactive:
       Exit;
 
-    mNormal, mVisual:
+    mNormal, mVisual, mVisualLine:
       begin
         if (ssCtrl in AShift) or (ssAlt in AShift) then
           Exit;
@@ -227,7 +228,7 @@ end;
 procedure TEngine.ResetCurrentOperation;
 begin
   // if we are in visual mode and we have an outstanding command to match (like the wrong key), we clear it and stay in visual
-  if not ((currentViMode = mVisual) and (FCurrentOperation.CommandToMatch <> '')) then
+  if not (((currentViMode = mVisual) or (currentViMode = mVisualLine)) and (FCurrentOperation.CommandToMatch <> '')) then
     currentViMode := mNormal;
 
   FCurrentOperation.Reset(false);
@@ -320,6 +321,7 @@ begin
   // gUU for line, guu for line
   FOperatorBindings.Add('gu', TOperatorLowercase);
   FOperatorBindings.Add('v', TOperatorVisualMode);
+  FOperatorBindings.Add('V', TOperatorVisualLineMode);
 
   // motions
   FMotionBindings.Add('w', TMotionWord);
