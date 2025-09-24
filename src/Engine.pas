@@ -83,7 +83,8 @@ implementation
 uses
   NavUtils,
   SysUtils,
-  ToolsAPI;
+  ToolsAPI,
+  Dialogs;
 
 function GetViModeString(aViMode: TViMode; aCommand: string): string;
 var
@@ -161,6 +162,26 @@ procedure TEngine.EditKeyDown(AKey, AScanCode: Word; AShift: TShiftState; AMsg: 
 var
   LIsLetter, LIsSymbol: Boolean;
 
+  function IsValidControlKey: boolean;
+  begin
+    if ssShift in AShift then
+      Exit(False);
+
+    if not (ssCtrl in AShift) then
+      Exit(False);
+
+    if AKey = ord('D') then
+      AKey := ord('d')
+    else if AKey = ord('U') then
+      AKey := ord('u')
+    else if AKey = ord('R') then
+      AKey := ord('r')
+    else
+      Exit(False);
+
+    result := True;
+  end;
+
   function GetTopMostEditView: IOTAEditView;
   var
     EditBuffer: IOTAEditBuffer;
@@ -178,12 +199,18 @@ begin
 
     mNormal, mVisual:
       begin
+        if IsValidControlKey then
+        begin
+          EditChar(AKey, AScanCode, AShift, AMsg, AHandled);
+          Exit;
+        end;
+
         if (ssCtrl in AShift) or (ssAlt in AShift) then
           Exit;
 
         LIsLetter := ((AKey >= ord('A')) and (AKey <= ord('Z'))) or ((AKey >= ord('0')) and (AKey <= ord('9')));
         LIsSymbol := ((AKey >= 186) and (AKey <= 192)) or ((AKey >= 219) and (AKey <= 222)) or (AKey = VK_SPACE)
-            or (AKey = VK_RETURN) or (AKey = 8 {backspace});
+            or (AKey = VK_RETURN) or (AKey = 8 {backspace}) or (AKey = VK_TAB);
 
         if LIsLetter or LIsSymbol then
         begin
@@ -264,7 +291,14 @@ begin
 
   // Return
   if aChar <> #13 then
-    FCurrentOperation.AddToCommandToMatch(aChar);
+  begin
+    if ssCtrl in FShiftState then
+      FCurrentOperation.AddToCommandToMatch('<C-' + AChar + '>')
+    else if (ssShift in FShiftState) and (aChar = #9) then
+      FCurrentOperation.AddToCommandToMatch('<S-' + AChar + '>')
+    else
+      FCurrentOperation.AddToCommandToMatch(AChar);
+  end;
 
   commandToMatch := FCurrentOperation.CommandToMatch;
   aBuffer := GetEditBuffer;
@@ -356,7 +390,11 @@ begin
   FMotionBindings.add('M', TMotionMiddleScreen);
   FMotionBindings.add('{', TMotionPreviousParagraphBreak);
   FMotionBindings.add('}', TMotionNextParagraphBreak);
-//  FViTextObjectBindings.Add('''', TMotionGoToMark); // takes in the mark char
+  FMotionBindings.Add('<C-u>', TMotionMoveUpScreen);
+  FMotionBindings.Add('<C-d>', TMotionMoveDownScreen);
+
+  //FMotionBindings.Add('<C-o>', TMotionMoveToLastPosition); cant find find a way to support this
+  // FViTextObjectBindings.Add('''', TMotionGoToMark); // takes in the mark char
 
   // one-shots with number modifiers
   FEditionBindings.Add('a', TEditionAppend);
@@ -373,7 +411,7 @@ begin
   FEditionBindings.Add('r', TEditionReplaceChar);
   FEditionBindings.Add('R', TEditionReplaceMode);
   FEditionBindings.Add('u', TEditionUndo);
-  FEditionBindings.Add('U', TEditionRedo);
+  FEditionBindings.Add('<C-r>', TEditionRedo);
   FEditionBindings.Add('x', TEditionDeleteCharacter);
   FEditionBindings.Add('X', TEditionDeletePreviousCharacter);
   FEditionBindings.Add('p', TEditionPaste);
@@ -381,6 +419,8 @@ begin
   FEditionBindings.Add('J', TEditionJoinLines);
   FEditionBindings.Add('.', TEditionRepeatLastCommand);
   FEditionBindings.Add('~', TEditionToggleCase);
+  FEditionBindings.Add(#9, TEditionNextBuffer);
+  FEditionBindings.Add('<S-'#9'>', TEditionPrevBuffer);
 
   // todo: this can probably get refactored to be more generic, eg a is all and can be added to most commands
   // add :w* to take in a filename

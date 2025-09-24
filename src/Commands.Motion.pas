@@ -65,6 +65,14 @@ type
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
+  TMotionMoveUpScreen = class(TMotion, IMoveMotion, IExecuteMotion)
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
+  end;
+
+  TMotionMoveDownScreen = class(TMotion, IMoveMotion, IExecuteMotion)
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
+  end;
+
   TMotionFindForward = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
@@ -1086,12 +1094,51 @@ begin
   aBuffer.TopView.MoveViewToCursor;
 end;
 
+procedure MoveScreen(aCursorPosition: IOTAEditPosition; aCount: integer; isDown: boolean);
+var
+  aBuffer: IOTAEditBuffer;
+  halfScreen: integer;
+begin
+  aBuffer := GetEditBuffer;
+
+  if aCount <> 1 then
+    halfScreen := -aCount
+  else
+  begin
+    if aBuffer.TopView = nil then
+      Exit;
+
+    halfScreen := Round((aBuffer.TopView.TopRow - aBuffer.TopView.BottomRow) / 2);
+  end;
+
+  if isDown then
+    halfScreen := -halfScreen;
+
+  aCursorPosition.MoveRelative(halfScreen, 0);
+  aBuffer.TopView.Center(aCursorPosition.Row, aCursorPosition.Column);
+end;
+
+{ TMotionMoveDownScreen }
+
+procedure TMotionMoveDownScreen.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+begin
+  inherited;
+  MoveScreen(aCursorPosition, aCount, True);
+end;
+
+{ TMotionMoveUpScreen }
+
+procedure TMotionMoveUpScreen.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+begin
+  inherited;
+  MoveScreen(aCursorPosition, aCount, False);
+end;
+
 initialization
   TMotionInsideAround.FIAMotionKeyBindings := TDictionary<string, TIAMotionClass>.Create;
   TMotionInsideAround.FillBindings;
 
 finalization
   TMotionInsideAround.FIAMotionKeyBindings.Free;
-
 
 end.

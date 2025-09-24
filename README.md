@@ -35,7 +35,7 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 ## Roadmap
 
 - `V` and (maybe, though probably not) `<C-V>`
-- Support for Half Page and Page Up/Down, `gUU`, `guu`, (maybe) `=`
+- Support for Page Up/Down, `gUU`, `guu`, (maybe) `=`
 - Complete the inside/around featuresets (paragraphs, tags, blocks, word)
 - Implement `/` searching
 - Undoing operations that are more than one smaller operations require undoing each smaller operation, find a way to 'group' operations
@@ -55,7 +55,6 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 ## Particularities (things that are not planned)
 
 - `L` goes to last -1 line, due to IDE auto-scrolling if we to to the last line
-- `U` is used to Redo, instead of the classic `<C-R>`
 - `Fx` and `Tx` only work on a line
 
 ## License

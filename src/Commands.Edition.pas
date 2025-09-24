@@ -107,6 +107,14 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
+  TEditionNextBuffer = class(TEdition)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
+  TEditionPrevBuffer = class(TEdition)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
 implementation
 
 uses
@@ -461,7 +469,48 @@ begin
   finally
     aMotionTrueEOL.Free;
   end;
+end;
 
+{ TEditionNextBuffer }
+
+procedure TEditionNextBuffer.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  LEditorServices: IOTAEditorServices;
+  aIOTAEditActions: IOTAEditActions100;
+  i: integer;
+begin
+  inherited;
+  QuerySvcs(BorlandIDEServices, IOTAEditorServices, LEditorServices);
+
+  if (LEditorServices = nil) or (LEditorServices.TopView = nil) then
+    Exit;
+
+  if not Supports(LEditorServices.TopView, IOTAEditActions100, aIOTAEditActions) then
+    Exit;
+
+  for i := 1 to aCount do
+    aIOTAEditActions.NextPage;
+end;
+
+{ TEditionPrevBuffer }
+
+procedure TEditionPrevBuffer.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  LEditorServices: IOTAEditorServices;
+  aIOTAEditActions: IOTAEditActions100;
+  i: Integer;
+begin
+  inherited;
+  QuerySvcs(BorlandIDEServices, IOTAEditorServices, LEditorServices);
+
+  if (LEditorServices = nil) or (LEditorServices.TopView = nil) then
+    Exit;
+
+  if not Supports(LEditorServices.TopView, IOTAEditActions100, aIOTAEditActions) then
+    Exit;
+
+  for i := 1 to aCount do
+    aIOTAEditActions.PriorPage;
 end;
 
 { TEditionVisualLineMode }
@@ -469,7 +518,6 @@ end;
 procedure TEditionVisualLineMode.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
-
 end;
 
 end.
