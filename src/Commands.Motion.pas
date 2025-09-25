@@ -361,15 +361,10 @@ begin
   else if Supports(self, IIAMotion, aIAMotion) then
   begin
     LSelection := aIAMotion.GetSelection(aCursorPosition);
-    ApplyActionToSelection(aCursorPosition, aOperator.BlockAction, true, LSelection);
+    ApplyActionToSelection(aCursorPosition, aOperator.BlockAction, false, LSelection);
+    aCursorPosition.SearchOptions.SearchText := '';
+    aCursorPosition.SearchAgain;
   end;
-
-  // Meant to fix the di{ style commands that leave artefacts due to highlighting, but breaks things like #
-//  if aCursorPosition.SearchOptions.SearchText <> '' then
-//  begin
-//    aCursorPosition.SearchOptions.SearchText := '';
-//    aCursorPosition.SearchAgain;
-//  end;
 end;
 
 procedure TMotion.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
