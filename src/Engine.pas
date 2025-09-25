@@ -282,6 +282,8 @@ var
   len: integer;
   searchString: string;
 begin
+  aOperatorClass := nil;
+
   // Backspace
   if aChar = #8 then
   begin
@@ -305,9 +307,12 @@ begin
   keepChar := False;
   aCursorPosition := GetEditPosition(aBuffer);
 
+  if FCurrentOperation.IsAFullLineOperation then
+    aOperatorClass := TOperatorClass(FCurrentOperation.OperatorCommand.ClassType);
+
   if FCurrentOperation.TryAddToCount(commandToMatch) then
     // we dont act on this, we just store if as a modifier for other commands
-  else if FOperatorBindings.TryGetValue(commandToMatch, aOperatorClass) then
+  else if (aOperatorClass <> nil) or FOperatorBindings.TryGetValue(commandToMatch, aOperatorClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aOperatorClass)
   else if FMotionBindings.TryGetValue(commandToMatch, aMotionClass) then
     FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aMotionClass)
@@ -351,8 +356,8 @@ begin
   FOperatorBindings.Add('<', TOperatorIndentLeft);
   FOperatorBindings.Add('=', TOperatorAutoIndent);
   FOperatorBindings.Add('gU', TOperatorUppercase);
-  // gUU for line, guu for line
   FOperatorBindings.Add('gu', TOperatorLowercase);
+  FOperatorBindings.Add('gc', TOperatorComment);
   FOperatorBindings.Add('v', TOperatorVisualMode);
 
   // motions
@@ -392,6 +397,7 @@ begin
   FMotionBindings.add('}', TMotionNextParagraphBreak);
   FMotionBindings.Add('<C-u>', TMotionMoveUpScreen);
   FMotionBindings.Add('<C-d>', TMotionMoveDownScreen);
+  FMotionBindings.Add('zz', TMotionCenterScreen);
 
   //FMotionBindings.Add('<C-o>', TMotionMoveToLastPosition); cant find find a way to support this
   // FViTextObjectBindings.Add('''', TMotionGoToMark); // takes in the mark char

@@ -46,6 +46,7 @@ type
     procedure AddToCount(aValue: Integer);
     function TryAddToCount(const aString: string): boolean;
     function Count(default: integer = 1): integer;
+    function IsAFullLineOperation: boolean;
     property CommandToMatch: string read FCommandToMatch;
     property LastCommand: string read FLastCommand;
     property OperatorCommand: TOperator read FOperator;
@@ -122,6 +123,18 @@ end;
 destructor TOperation.Destroy;
 begin
   Reset(false);
+end;
+
+function TOperation.IsAFullLineOperation: boolean;
+var
+  commandLength: integer;
+begin
+  if (Length(FCommandToMatch) <> 1) or (FOperator = nil) then
+    Exit(False);
+
+  commandLength := Length(FCommand);
+
+  result := (commandLength >= 3) and (FCommand[commandLength - 1] = FCommandToMatch);
 end;
 
 procedure TOperation.SetCommand(aCommand: string);

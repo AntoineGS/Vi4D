@@ -9,7 +9,8 @@ uses
   Clipboard;
 
 type
-  TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baVisual);
+  TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baComment,
+      baVisual);
   TViMode = (mInactive, mNormal, mInsert, mVisual);
   TDirection = (dForward, dBack);
 
@@ -98,7 +99,7 @@ var
   aBuffer: IOTAEditBuffer;
 begin
   if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to ChangeIndentation');
+    Raise Exception.Create('aCursorPosition must be set in call to ChangeCase');
 
   LStartedSelection := False;
   aBuffer := GetEditBuffer;
@@ -133,6 +134,77 @@ begin
 
   aCursorPosition.Restore;
   LSelection.Restore;
+end;
+
+procedure ToggleComment(aCursorPosition: IOTAEditPosition; AIsLine: boolean);
+type
+  TRunMode = (rmUnknown, rmCommenting, rmUncommenting);
+var
+  aSelection: IOTAEditBlock;
+  aBuffer: IOTAEditBuffer;
+  i: Integer;
+  endingRow: Integer;
+  runMode: TRunMode;
+  startingRow: Integer;
+begin
+  if aCursorPosition = nil then
+    Raise Exception.Create('aCursorPosition must be set in call to ToggleComment');
+
+  runMode := rmUnknown;
+  aBuffer := GetEditBuffer;
+  aSelection := aBuffer.EditBlock;
+  aSelection.Save;
+  aCursorPosition.Save;
+  endingRow := aSelection.EndingRow;
+  startingRow := aSelection.StartingRow;
+
+  if aSelection.Size <> 0 then
+  begin
+    // When selecting multiple lines, if the cursor is in the first column the last line doesn't get into the block
+    // and the indent seems buggy, as the cursor is on the last line but it isn't indented, so we force
+    // the selection of at least one char to correct this behavior
+    aSelection.ExtendRelative(0, 1);
+  end;
+
+  // this is done to remove an adjustment done in GetPositionForMove for full lines, which is meant to grab the
+  // new line character
+  if AIsLine then
+  begin
+    if aCursorPosition.Row = endingRow then
+      dec(endingRow)
+    else
+      inc(startingRow);
+  end;
+
+  for i := startingRow to endingRow do
+  begin
+    aCursorPosition.MoveReal(i, 0);
+    aCursorPosition.MoveBOL;
+
+    if aCursorPosition.IsWhiteSpace then
+      aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight);
+
+    if runMode = rmUnknown then
+    begin
+      if aCursorPosition.Read(2) = '//' then
+        runMode := rmUncommenting
+      else
+        runMode := rmCommenting;
+    end;
+
+    if aCursorPosition.IsWordCharacter and (runMode = rmCommenting) then
+      aCursorPosition.InsertText('// ')
+    else if runMode = rmUncommenting then
+    begin
+      if aCursorPosition.Read(3) = '// ' then
+        aCursorPosition.Delete(3)
+      else if aCursorPosition.Read(2) = '//' then
+        aCursorPosition.Delete(2);
+    end;
+  end;
+
+  aCursorPosition.Restore;
+  aSelection.Restore;
 end;
 
 procedure TCommand.ApplyActionToSelection(aCursorPosition: IOTAEditPosition; AAction: TBlockAction; AIsLine: Boolean;
@@ -176,12 +248,12 @@ var
   aEditionPreviousLine: TEditionPreviousLine;
 begin
   if aCursorPosition = nil then
-    Raise Exception.Create('aCursorPosition must be set in call to ApplyActionToSelection');
+    Raise Exception.Create('aCursorPosition must be set in call to ApplyActionToSelectionInt');
 
   if not Assigned(aSelectionFunc) then
-    Raise Exception.Create('aSelectionFunc must be set in call to ApplyActionToSelection');
+    Raise Exception.Create('aSelectionFunc must be set in call to ApplyActionToSelectionInt');
 
-  restoreCustorPosition := AAction in [baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase];
+  restoreCustorPosition := AAction in [baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baComment];
 
   if restoreCustorPosition then
     aCursorPosition.Save;
@@ -221,6 +293,8 @@ begin
         ChangeCase(aCursorPosition, true);
       baLowercase:
         ChangeCase(aCursorPosition, false);
+      baComment:
+        ToggleComment(aCursorPosition, AIsLine);
       baVisual:
         FEngine.currentViMode := mVisual;
     end;

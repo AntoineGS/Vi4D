@@ -73,6 +73,10 @@ type
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
   end;
 
+  TMotionCenterScreen = class(TMotion, IMoveMotion, IExecuteMotion)
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
+  end;
+
   TMotionFindForward = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
@@ -1132,6 +1136,20 @@ procedure TMotionMoveUpScreen.Move(aCursorPosition: IOTAEditPosition; aCount: in
 begin
   inherited;
   MoveScreen(aCursorPosition, aCount, False);
+end;
+
+{ TMotionCenterScreen }
+
+procedure TMotionCenterScreen.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  aBuffer: IOTAEditBuffer;
+begin
+  aBuffer := GetEditBuffer;
+
+  if aBuffer.TopView = nil then
+    Exit;
+
+  aBuffer.TopView.Center(aCursorPosition.Row, aCursorPosition.Column);
 end;
 
 initialization

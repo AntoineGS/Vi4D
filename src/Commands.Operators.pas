@@ -63,6 +63,11 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
+  TOperatorComment = class(TOperator)
+    function GetBlockAction: TBlockAction; override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
+  end;
+
   TOperatorVisualMode = class(TOperator)
     function GetBlockAction: TBlockAction; override;
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
@@ -101,7 +106,7 @@ begin
 
     if fullLines then
     begin
-      aNormalMotion.Move(aCursorPosition, 1, forEdition);
+      aNormalMotion.Move(aCursorPosition, 1, forEdition); // probably to get the newline char
 
       // we are lower
       if aCursorPosition.Row > currLine then
@@ -247,6 +252,19 @@ end;
 function TOperatorVisualMode.GetBlockAction: TBlockAction;
 begin
   result := baVisual;
+end;
+
+{ TOperatorComment }
+
+procedure TOperatorComment.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
+begin
+  inherited;
+  ApplyActionToSelection(aCursorPosition, baComment, fullLine, lPos);
+end;
+
+function TOperatorComment.GetBlockAction: TBlockAction;
+begin
+  result := baComment;
 end;
 
 end.
