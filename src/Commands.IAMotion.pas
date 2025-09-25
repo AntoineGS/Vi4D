@@ -103,14 +103,19 @@ var
   openBracketCount: integer;
   firstCompleteSetEncountered: boolean;
   firstOpenCharaterEncountered: boolean;
+  origTopPos: TOTAEditPos;
+  startingRow: Integer;
 begin
   try
     openEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     closeEscapeChar := IfThen(CharInSet(aOpenCharacter, ['.', '^', '$', '*', '+', '?', '(', ')', '[', '{', '\', '|']), '\');
     aBuffer := GetEditBuffer;
-
+    origTopPos := aBuffer.TopView.TopPos;
     aCursorPosition.Save;
-    // first we figure out if we are within a bracket, by looking for an unmatched backet before the cursor
+    startingRow := aCursorPosition.Row;
+
+    // first we figure out if we are within a bracket,
+    // by looking for an unmatched bracket after the cursor (a close, not open)
     aCursorPosition.SearchOptions.SearchText :=
         Format('%s%s|%s%s', [openEscapeChar, aOpenCharacter, closeEscapeChar, aCloseCharacter]);
     aCursorPosition.SearchOptions.CaseSensitive := false;
@@ -152,9 +157,13 @@ begin
 
       if aOpenCharacter = aCloseCharacter then
         break;
+
+      // I am limiting this to 100 rows to prevent running for too long with large files
+      if (aCursorPosition.Row > (startingRow + 100)) and (openBracketCount = 0) then
+        break;
     end;
 
-    // we have an open bracket
+    // we are withing a bracket
     if (openBracketCount < 0) or (aOpenCharacter = aCloseCharacter) then
     begin
       toPos.Col := aCursorPosition.Column - 1;
@@ -189,7 +198,7 @@ begin
     result.BeginBlock;
     result.Extend(toPos.Line, toPos.Col + IfThen(FIaType = itAround, 1, 0));
     result.EndBlock;
-    aBuffer.TopView.MoveViewToCursor;
+    aBuffer.TopView.TopPos := origTopPos;
   finally
     aCursorPosition.SearchOptions.RegularExpression := False;
   end;
