@@ -115,6 +115,10 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
+  TEditionSearch = class(TEdition)
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+  end;
+
 implementation
 
 uses
@@ -518,6 +522,14 @@ end;
 procedure TEditionVisualLineMode.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 begin
   inherited;
+end;
+
+{ TEditionSearch }
+
+procedure TEditionSearch.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+begin
+  inherited;
+  FEngine.StartSearchMode;
 end;
 
 end.

@@ -11,7 +11,7 @@ uses
 type
   TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baComment,
       baVisual);
-  TViMode = (mInactive, mNormal, mInsert, mVisual);
+  TViMode = (mInactive, mNormal, mInsert, mVisual, mSearch);
   TDirection = (dForward, dBack);
 
   IEngine = interface
@@ -20,6 +20,7 @@ type
     procedure SetViMode(ANewMode: TViMode);
     property CurrentViMode: TViMode read GetViMode write SetViMode;
     procedure ExecuteLastCommand;
+    procedure StartSearchMode;
   end;
 
   TCommand = class(TSingletonImplementation)

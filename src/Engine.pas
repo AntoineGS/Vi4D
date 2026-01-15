@@ -28,6 +28,7 @@ uses
   Generics.Collections,
   Generics.Defaults,
   Windows,
+  ToolsAPI,
   Commands.Base,
   Commands.Motion,
   Commands.Operators,
@@ -54,6 +55,8 @@ type
     FClipboard: TClipboard;
     FUpdateActionCaption: boolean;
     FEvents: TApplicationEvents;
+    FSearchString: string;
+    FSearchStartPos: TOTAEditPos;
     //FMarkArray: array [0 .. 255] of TOTAEditPos;
 
     procedure FillBindings;
@@ -65,6 +68,11 @@ type
     procedure SetOnCaptionChanged(ANewProc: TCaptionChangeProc);
     procedure OnCommandChanged(aCommand: string);
     procedure DoApplicationIdle(Sender: TObject; var Done: Boolean);
+    procedure HandleSearchChar(const AChar: Char);
+    procedure HandleSearchKeyDown(AKey: Word; AMsg: TMsg; var AHandled: Boolean);
+    procedure DoIncrementalSearch;
+    procedure FinalizeSearch;
+    procedure CancelSearch;
   public
     property currentViMode: TViMode read GetViMode write SetViMode;
     property onCaptionChanged: TCaptionChangeProc write SetOnCaptionChanged;
@@ -76,6 +84,7 @@ type
     procedure LButtonDown;
     procedure ConfigureCursor;
     procedure ToggleActive;
+    procedure StartSearchMode;
   end;
 
 implementation
@@ -83,7 +92,6 @@ implementation
 uses
   NavUtils,
   SysUtils,
-  ToolsAPI,
   Dialogs;
 
 function GetViModeString(aViMode: TViMode; aCommand: string): string;
@@ -96,6 +104,7 @@ begin
     mNormal: mode := 'NORMAL';
     mInsert: mode := 'INSERT';
     mVisual: mode := 'VISUAL';
+    mSearch: mode := '/';
   end;
   command := aCommand;
   result := Format('   %s', [mode]);
@@ -151,6 +160,14 @@ procedure TEngine.EditChar(AKey, AScanCode: Word; AShift: TShiftState; AMsg: TMs
 begin
   if currentViMode in [mInactive, mInsert] then
     Exit;
+
+  if currentViMode = mSearch then
+  begin
+    HandleSearchChar(Chr(AKey));
+    AHandled := True;
+    (BorlandIDEServices as IOTAEditorServices).TopView.Paint;
+    Exit;
+  end;
 
   FShiftState := AShift;
   HandleChar(Chr(AKey));
@@ -228,16 +245,21 @@ begin
           AHandled := True;
         end;
       end;
-  else // Insert
-    begin
-      if (AKey = VK_ESCAPE) then
+    mInsert:
       begin
-        GetTopMostEditView.Buffer.BufferOptions.InsertMode := True;
-        currentViMode := mNormal; // Go from Insert back to Normal
-        AHandled := True;
-        FCurrentOperation.Reset(false);
+        if (AKey = VK_ESCAPE) then
+        begin
+          GetTopMostEditView.Buffer.BufferOptions.InsertMode := True;
+          currentViMode := mNormal; // Go from Insert back to Normal
+          AHandled := True;
+          FCurrentOperation.Reset(false);
+        end;
       end;
-    end;
+
+    mSearch:
+      begin
+        HandleSearchKeyDown(AKey, AMsg, AHandled);
+      end;
   end;
 end;
 
@@ -252,12 +274,27 @@ begin
 end;
 
 procedure TEngine.ResetCurrentOperation;
+var
+  aBuffer: IOTAEditBuffer;
+  aCursorPosition: IOTAEditPosition;
 begin
   // if we are in visual mode and we have an outstanding command to match (like the wrong key), we clear it and stay in visual
   if not ((currentViMode = mVisual) and (FCurrentOperation.CommandToMatch <> '')) then
     currentViMode := mNormal;
 
   FCurrentOperation.Reset(false);
+
+  // Clear search highlighting (like :noh in Vim)
+  aBuffer := GetEditBuffer;
+  if aBuffer <> nil then
+  begin
+    aCursorPosition := GetEditPosition(aBuffer);
+    if aCursorPosition <> nil then
+    begin
+      aCursorPosition.SearchOptions.SearchText := '';
+      aCursorPosition.SearchAgain;
+    end;
+  end;
 end;
 
 procedure TEngine.DoApplicationIdle(Sender: TObject; var Done: Boolean);
@@ -427,6 +464,7 @@ begin
   FEditionBindings.Add('~', TEditionToggleCase);
   FEditionBindings.Add(#9, TEditionNextBuffer);
   FEditionBindings.Add('<S-'#9'>', TEditionPrevBuffer);
+  FEditionBindings.Add('/', TEditionSearch);
 
   // todo: this can probably get refactored to be more generic, eg a is all and can be added to most commands
   // add :w* to take in a filename
@@ -476,6 +514,139 @@ begin
     currentViMode := mNormal
   else
     currentViMode := mInactive;
+end;
+
+procedure TEngine.StartSearchMode;
+var
+  aCursorPosition: IOTAEditPosition;
+  aBuffer: IOTAEditBuffer;
+begin
+  aBuffer := GetEditBuffer;
+  if aBuffer = nil then
+    Exit;
+
+  aCursorPosition := GetEditPosition(aBuffer);
+  if aCursorPosition = nil then
+    Exit;
+
+  // Save current position for cancel
+  FSearchStartPos.Line := aCursorPosition.Row;
+  FSearchStartPos.Col := aCursorPosition.Column;
+
+  // Initialize search state
+  FSearchString := '';
+
+  // Enter search mode
+  currentViMode := mSearch;
+end;
+
+procedure TEngine.HandleSearchChar(const AChar: Char);
+begin
+  FSearchString := FSearchString + AChar;
+  OnCommandChanged(FSearchString);
+  DoIncrementalSearch;
+end;
+
+procedure TEngine.HandleSearchKeyDown(AKey: Word; AMsg: TMsg; var AHandled: Boolean);
+begin
+  case AKey of
+    VK_RETURN:
+      begin
+        FinalizeSearch;
+        AHandled := True;
+      end;
+    VK_ESCAPE:
+      begin
+        CancelSearch;
+        AHandled := True;
+      end;
+    8: // Backspace
+      begin
+        if Length(FSearchString) > 0 then
+        begin
+          SetLength(FSearchString, Length(FSearchString) - 1);
+          OnCommandChanged(FSearchString);
+          DoIncrementalSearch;
+        end
+        else
+        begin
+          // Empty search string, cancel search
+          CancelSearch;
+        end;
+        AHandled := True;
+      end;
+  else
+    // Let other keys through to generate WM_CHAR
+    TranslateMessage(AMsg);
+    AHandled := True;
+  end;
+end;
+
+procedure TEngine.DoIncrementalSearch;
+var
+  aCursorPosition: IOTAEditPosition;
+  aBuffer: IOTAEditBuffer;
+begin
+  if FSearchString = '' then
+    Exit;
+
+  aBuffer := GetEditBuffer;
+  if aBuffer = nil then
+    Exit;
+
+  aCursorPosition := GetEditPosition(aBuffer);
+  if aCursorPosition = nil then
+    Exit;
+
+  // Restore to start position before searching
+  aCursorPosition.Move(FSearchStartPos.Line, FSearchStartPos.Col);
+
+  // Set up search
+  aCursorPosition.SearchOptions.SearchText := FSearchString;
+  aCursorPosition.SearchOptions.CaseSensitive := False;
+  aCursorPosition.SearchOptions.Direction := sdForward;
+  aCursorPosition.SearchOptions.FromCursor := True;
+  aCursorPosition.SearchOptions.RegularExpression := True;
+  aCursorPosition.SearchOptions.WholeFile := True;
+  aCursorPosition.SearchOptions.WordBoundary := False;
+
+  // Do the search
+  if not aCursorPosition.SearchAgain then
+  begin
+    // Search failed from current position, try from the beginning
+    aCursorPosition.Move(1, 1);
+    aCursorPosition.SearchAgain;
+  end;
+
+  aBuffer.TopView.MoveViewToCursor;
+end;
+
+procedure TEngine.FinalizeSearch;
+begin
+  // Search is already set up from incremental search
+  // Clear the command display and switch back to normal mode
+  OnCommandChanged('');
+  currentViMode := mNormal;
+  FCurrentOperation.Reset(False);
+end;
+
+procedure TEngine.CancelSearch;
+var
+  aCursorPosition: IOTAEditPosition;
+  aBuffer: IOTAEditBuffer;
+begin
+  // Restore cursor to original position
+  aBuffer := GetEditBuffer;
+  if aBuffer <> nil then
+  begin
+    aCursorPosition := GetEditPosition(aBuffer);
+    if aCursorPosition <> nil then
+      aCursorPosition.Move(FSearchStartPos.Line, FSearchStartPos.Col);
+  end;
+
+  FSearchString := '';
+  currentViMode := mNormal;
+  FCurrentOperation.Reset(False);
 end;
 
 end.
