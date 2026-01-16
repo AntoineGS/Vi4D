@@ -17,6 +17,8 @@ type
     function CurrentRegister: TRegister;
     procedure SetCurrentRegisterIsLine(aValue: boolean);
     procedure SetCurrentRegisterText(aValue: string);
+    procedure SetSelectedRegister(aIndex: Integer);
+    procedure ResetSelectedRegister;
   end;
 
 implementation
@@ -37,6 +39,17 @@ end;
 procedure TClipboard.SetCurrentRegisterText(aValue: string);
 begin
   FRegisterArray[FSelectedRegister].Text := aValue;
+end;
+
+procedure TClipboard.SetSelectedRegister(aIndex: Integer);
+begin
+  if (aIndex >= 0) and (aIndex <= 255) then
+    FSelectedRegister := aIndex;
+end;
+
+procedure TClipboard.ResetSelectedRegister;
+begin
+  FSelectedRegister := 0;
 end;
 
 end.

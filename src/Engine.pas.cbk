@@ -1,4 +1,4 @@
-{
+﻿{
   This file contains the implementation of (Neo)Vi keybinds in the Delphi IDE.
 
   Copyright (C) 2016 Peter Ross
@@ -343,14 +343,6 @@ begin
   aBuffer := GetEditBuffer;
   keepChar := False;
   aCursorPosition := GetEditPosition(aBuffer);
-
-  // Handle register selection with " prefix (e.g., "a for register a)
-  if (Length(commandToMatch) = 2) and (commandToMatch[1] = '"') then
-  begin
-    FClipboard.SetSelectedRegister(Ord(commandToMatch[2]));
-    FCurrentOperation.ClearCommandToMatch;
-    Exit;
-  end;
 
   if FCurrentOperation.IsAFullLineOperation then
     aOperatorClass := TOperatorClass(FCurrentOperation.OperatorCommand.ClassType);

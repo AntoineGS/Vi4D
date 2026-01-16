@@ -302,6 +302,7 @@ begin
   FCommandToMatch := '';
   FCount := 1;
   FCountSet := False;
+  FClipboard.ResetSelectedRegister;
 end;
 
 end.
