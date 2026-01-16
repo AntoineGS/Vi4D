@@ -744,7 +744,14 @@ begin
   aCursorPosition.SearchOptions.Direction := sdForward;
 
   for i := 1 to aCount do
-    aCursorPosition.SearchAgain;
+  begin
+    if not aCursorPosition.SearchAgain then
+    begin
+      // Wrap to beginning of file and try again
+      aCursorPosition.Move(1, 1);
+      aCursorPosition.SearchAgain;
+    end;
+  end;
 
   aCursorPosition.MoveRelative(0, -Length(aCursorPosition.SearchOptions.SearchText));
 end;
@@ -772,7 +779,14 @@ begin
   aCursorPosition.SearchOptions.Direction := sdBackward;
 
   for i := 1 to aCount do
-    aCursorPosition.SearchAgain;
+  begin
+    if not aCursorPosition.SearchAgain then
+    begin
+      // Wrap to end of file and try again
+      aCursorPosition.MoveEOF;
+      aCursorPosition.SearchAgain;
+    end;
+  end;
 end;
 
 { TMotionPreviousParagraphBreak }
