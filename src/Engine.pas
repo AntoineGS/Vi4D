@@ -334,6 +334,22 @@ begin
   if aChar = #8 then
   begin
     FCurrentOperation.RemoveLastCharFromCommandToMatch;
+    commandToMatch := FCurrentOperation.CommandToMatch;
+    
+    // If we're in register/mark selection mode, update or hide the popup
+    if FPopupManager.IsVisible then
+    begin
+      if (Length(commandToMatch) = 1) and ((commandToMatch[1] = '"') or (commandToMatch[1] = '''') or (commandToMatch[1] = '`')) then
+      begin
+        // Just the prefix remains, clear selection in popup
+        FPopupManager.UpdateSelection('');
+      end
+      else if (Length(commandToMatch) = 0) then
+      begin
+        // No prefix left, hide the popup
+        FPopupManager.HidePopup;
+      end;
+    end;
     Exit;
   end;
 
@@ -371,8 +387,18 @@ begin
     else
       // For named registers a-z, use ASCII value as index
       FClipboard.SetSelectedRegister(Ord(commandToMatch[2]));
-    FCurrentOperation.ClearCommandToMatch;
+    // Keep the command for backspace support, but don't process further
     Exit;
+  end;
+
+  // If we have 3+ chars and starts with ", strip the register prefix
+  if (Length(commandToMatch) >= 3) and (commandToMatch[1] = '"') then
+  begin
+    FPopupManager.HidePopup;
+    // Remove the register prefix from the command and continue processing
+    FCurrentOperation.ClearCommandToMatch;
+    FCurrentOperation.AddToCommandToMatch(commandToMatch[3]);
+    commandToMatch := FCurrentOperation.CommandToMatch;
   end;
 
   // Show popup for mark selection when ' or ` is pressed (non-modal)
