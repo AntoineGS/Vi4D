@@ -88,6 +88,7 @@
         <DCCReference Include="src\Clipboard.pas"/>
         <DCCReference Include="src\Commands.Edition.pas"/>
         <DCCReference Include="src\Commands.IAMotion.pas"/>
+        <DCCReference Include="src\Commands.Ex.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -152,8 +153,8 @@
             </Delphi.Personality>
             <Deployment Version="4">
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libpcre.dylib" Class="DependencyModule"/>
-                <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule"/>
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libcgunwind.1.0.dylib" Class="DependencyModule"/>
+                <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule"/>
                 <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\ViDelphi_Rio.bpl" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployClass Name="Android_SplashImage470">
                     <Platform Name="Android64">
@@ -166,11 +167,11 @@
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="DependencyModule">
-                    <Platform Name="OSXARM64">
+                    <Platform Name="OSX64">
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
-                    <Platform Name="OSX64">
+                    <Platform Name="OSXARM64">
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
@@ -386,11 +387,11 @@
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="DependencyFramework">
-                    <Platform Name="OSXARM64">
+                    <Platform Name="OSX64">
                         <Operation>1</Operation>
                         <Extensions>.framework</Extensions>
                     </Platform>
-                    <Platform Name="OSX64">
+                    <Platform Name="OSXARM64">
                         <Operation>1</Operation>
                         <Extensions>.framework</Extensions>
                     </Platform>
@@ -523,7 +524,7 @@
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
-                    <Platform Name="OSXARM64">
+                    <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
@@ -531,7 +532,7 @@
                         <RemoteDir>Contents\Resources</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
-                    <Platform Name="OSX64">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
@@ -638,7 +639,7 @@
                     </Platform>
                 </DeployClass>
                 <DeployClass Required="true" Name="DependencyPackage">
-                    <Platform Name="OSX64">
+                    <Platform Name="OSXARM64">
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
@@ -646,7 +647,7 @@
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
-                    <Platform Name="OSXARM64">
+                    <Platform Name="OSX64">
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>

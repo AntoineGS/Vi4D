@@ -92,6 +92,7 @@ begin
   FIAType := aIAType;
 end;
 
+// Todo: This is highly inefficient
 function TIAMotion.InsideGetSelection(aCursorPosition: IOTAEditPosition; const aOpenCharacter,
   aCloseCharacter: Char): IOTAEditBlock;
 var
