@@ -278,6 +278,17 @@ begin
     LSelection := aSelectionFunc();
     LTemp := LSelection.Text;
 
+    // Normalize line endings: convert LF to CRLF (but don't convert CRLF to CRCRLF)
+    if AIsLine and (Length(LTemp) > 0) then
+    begin
+      LTemp := StringReplace(LTemp, #13#10, #10, [rfReplaceAll]);
+      LTemp := StringReplace(LTemp, #10, #13#10, [rfReplaceAll]);
+      
+      // Ensure text ends with line ending
+      if (LTemp[Length(LTemp)] <> #10) then
+        LTemp := LTemp + #13#10;
+    end;
+
     case AAction of
       baDelete:
         begin
