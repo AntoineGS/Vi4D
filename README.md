@@ -35,21 +35,16 @@ Note: This does not seem to work in recent versions of Delphi, it works great in
 ## Roadmap
 
 - `V` and (maybe, though probably not) `<C-V>`
-- Support for Page Up/Down, `gUU`, `guu`, (maybe) `=`
+- Support for (maybe) `=`
 - Complete the inside/around featuresets (paragraphs, tags, blocks, word)
-- Implement `/` searching
 - Undoing operations that are more than one smaller operations require undoing each smaller operation, find a way to 'group' operations
-- Marks support
-- Better registry support (currently only one entry is supported)
 - :s/_/_
 - Configurable bindings
 - Look at bringing back the DLL debugging doc and project from the original repo, as it seems for newer versions of Delphi debugging bds.exe does not work
 
 ## Known issues (plan to address)
 
-- `r` does not go back to Normal mode after entering the replacement character
 - Undo and Redo do not bring the cursor back to the change
-- Around motions with things like `w` need to keep one of the two spaces around
 - After using some motions like Inside\Around when the cursor is before the text to change (like before the opening bracket), the view is changed with the cursor on the top line
 
 ## Particularities (things that are not planned)
