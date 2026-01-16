@@ -216,7 +216,7 @@ type
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
-  TMotionGoToMarkLine = class(TMotion, IMoveMotion, ISearchMotion)
+  TMotionGoToMarkLine = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
   public
@@ -226,7 +226,7 @@ type
     property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
-  TMotionGoToMarkExact = class(TMotion, IMoveMotion, ISearchMotion)
+  TMotionGoToMarkExact = class(TMotion, IMoveMotion, ISearchMotion, IExecuteMotion)
   private
     FSearchToken: string;
   public

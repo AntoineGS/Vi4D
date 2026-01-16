@@ -497,11 +497,6 @@ begin
   FExBindings.Add(':qa', TExCloseAllFiles);
   FExBindings.Add(':q!', TExForceCloseFile);
   FExBindings.Add(':qa!', TExForceCloseAllFiles);
-//  FExBindings.Add('/', TExSearch);
-
-//To Migrate
-//  FViKeybinds.Add('m', ActionSetMark);  // takes in the mark char
-//  FViKeybinds.Add('/', ActionSearch);
 end;
 
 function TEngine.GetViMode: TViMode;
