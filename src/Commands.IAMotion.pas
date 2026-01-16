@@ -279,8 +279,95 @@ end;
 { TIAMotionWord }
 
 function TIAMotionWord.GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
+var
+  aBuffer: IOTAEditBuffer;
+  startRow, startCol, endRow, endCol: Integer;
+  onWord, onWhiteSpace: Boolean;
 begin
+  Result := nil;
+  aBuffer := GetEditBuffer;
+  if aBuffer = nil then
+    Exit;
 
+  aCursorPosition.Save;
+  try
+    onWord := aCursorPosition.IsWordCharacter;
+    onWhiteSpace := aCursorPosition.IsWhiteSpace;
+
+    // Handle case where we're on a word character
+    if onWord then
+    begin
+      // Move to start of word
+      while aCursorPosition.IsWordCharacter and (aCursorPosition.Column > 1) do
+        aCursorPosition.MoveRelative(0, -1);
+
+      if not aCursorPosition.IsWordCharacter then
+        aCursorPosition.MoveRelative(0, 1);
+
+      startRow := aCursorPosition.Row;
+      startCol := aCursorPosition.Column;
+
+      // Move to end of word
+      while aCursorPosition.IsWordCharacter do
+        aCursorPosition.MoveRelative(0, 1);
+
+      // For "around", include trailing whitespace
+      if FIAType = itAround then
+      begin
+        while aCursorPosition.IsWhiteSpace and (aCursorPosition.Character <> #$D) do
+          aCursorPosition.MoveRelative(0, 1);
+      end;
+
+      endRow := aCursorPosition.Row;
+      endCol := aCursorPosition.Column;
+    end
+    // Handle case where we're on whitespace
+    else if onWhiteSpace then
+    begin
+      // Move to start of whitespace
+      while aCursorPosition.IsWhiteSpace and (aCursorPosition.Column > 1) do
+        aCursorPosition.MoveRelative(0, -1);
+
+      if not aCursorPosition.IsWhiteSpace then
+        aCursorPosition.MoveRelative(0, 1);
+
+      startRow := aCursorPosition.Row;
+      startCol := aCursorPosition.Column;
+
+      // Move to end of whitespace
+      while aCursorPosition.IsWhiteSpace and (aCursorPosition.Character <> #$D) do
+        aCursorPosition.MoveRelative(0, 1);
+
+      // For "around", include following word
+      if FIAType = itAround then
+      begin
+        while aCursorPosition.IsWordCharacter do
+          aCursorPosition.MoveRelative(0, 1);
+      end;
+
+      endRow := aCursorPosition.Row;
+      endCol := aCursorPosition.Column;
+    end
+    else
+    begin
+      // On special character - select just that character
+      startRow := aCursorPosition.Row;
+      startCol := aCursorPosition.Column;
+      aCursorPosition.MoveRelative(0, 1);
+      endRow := aCursorPosition.Row;
+      endCol := aCursorPosition.Column;
+    end;
+
+    // Build selection
+    aCursorPosition.Move(startRow, startCol);
+    Result := aBuffer.EditBlock;
+    Result.Reset;
+    Result.BeginBlock;
+    Result.Extend(endRow, endCol);
+    Result.EndBlock;
+  finally
+    aCursorPosition.Restore;
+  end;
 end;
 
 end.
