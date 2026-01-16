@@ -347,8 +347,12 @@ var
   fullLines: boolean;
   aIAMotion: IIAMotion;
   LSelection: IOTAEditBlock;
+  isVisualMode: boolean;
+  aBuffer: IOTAEditBuffer;
 begin
   inherited;
+
+  isVisualMode := FEngine.CurrentViMode in [mVisual, mVisualLine, mVisualBlock];
 
   if Supports(self, IMoveMotion, aNormalMotion) then
   begin
@@ -356,14 +360,37 @@ begin
     begin
       lPos := GetPositionForMove(aCursorPosition, aNormalMotion, false, aCount);
 
-      if FEngine.CurrentViMode = mVisual then
-        GetEditBuffer.EditBlock.Extend(lPos.Line, lPos.Col)
+      if isVisualMode then
+      begin
+        aBuffer := GetEditBuffer;
+        LSelection := aBuffer.EditBlock;
+
+        if FEngine.CurrentViMode = mVisualLine then
+        begin
+          // Visual Line mode: extend to target line (style already set to btLine)
+          LSelection.Extend(lPos.Line, lPos.Col);
+        end
+        else if FEngine.CurrentViMode = mVisualBlock then
+        begin
+          // Visual Block mode: extend to target position (style already set to btColumn)
+          LSelection.Extend(lPos.Line, lPos.Col);
+        end
+        else
+        begin
+          // Regular visual mode
+          LSelection.Extend(lPos.Line, lPos.Col);
+        end;
+      end
       else
         aCursorPosition.Move(lPos.Line, lPos.Col);
     end
     else
     begin
-      fullLines := (FEngine.CurrentViMode <> mVisual) and ((self.ClassType = TMotionDown) or (self.ClassType = TMotionUp));
+      fullLines := (not isVisualMode) and ((self.ClassType = TMotionDown) or (self.ClassType = TMotionUp));
+
+      // Visual Line mode operations are always full line
+      if FEngine.CurrentViMode = mVisualLine then
+        fullLines := True;
 
       // if full lines we need to ensure to grab the full line on which we are + the x number in the direction given
       if fullLines then
@@ -374,7 +401,7 @@ begin
           aCursorPosition.MoveEOL;
       end;
 
-      lPos := GetPositionForMove(aCursorPosition, aNormalMotion, (FEngine.CurrentViMode <> mVisual), aCount, fullLines);
+      lPos := GetPositionForMove(aCursorPosition, aNormalMotion, not isVisualMode, aCount, fullLines);
       ApplyActionToSelection(aCursorPosition, aOperator.BlockAction, fullLines, lPos);
     end;
   end

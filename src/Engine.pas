@@ -108,6 +108,8 @@ begin
     mNormal: mode := 'NORMAL';
     mInsert: mode := 'INSERT';
     mVisual: mode := 'VISUAL';
+    mVisualLine: mode := 'V-LINE';
+    mVisualBlock: mode := 'V-BLOCK';
     mSearch: mode := '/';
   end;
   command := aCommand;
@@ -159,7 +161,7 @@ begin
   LEditBuffer := GetEditBuffer;
 
   if LEditBuffer <> nil then
-    LEditBuffer.EditOptions.UseBriefCursorShapes := (currentViMode = mNormal) or (currentViMode = mVisual);
+    LEditBuffer.EditOptions.UseBriefCursorShapes := currentViMode in [mNormal, mVisual, mVisualLine, mVisualBlock];
 end;
 
 procedure TEngine.EditChar(AKey, AScanCode: Word; AShift: TShiftState; AMsg: TMsg; var AHandled: Boolean);
@@ -199,6 +201,8 @@ var
       AKey := ord('u')
     else if AKey = ord('R') then
       AKey := ord('r')
+    else if AKey = ord('V') then
+      AKey := ord('v')  // Ctrl+V for visual block mode
     else
       Exit(False);
 
@@ -220,7 +224,7 @@ begin
     mInactive:
       Exit;
 
-    mNormal, mVisual:
+    mNormal, mVisual, mVisualLine, mVisualBlock:
       begin
         if IsValidControlKey then
         begin
@@ -283,13 +287,29 @@ procedure TEngine.ResetCurrentOperation;
 var
   aBuffer: IOTAEditBuffer;
   aCursorPosition: IOTAEditPosition;
+  aSelection: IOTAEditBlock;
+  wasInVisualMode: boolean;
 begin
   // Hide popup when operation is reset/cancelled
   FPopupManager.HidePopup;
 
+  wasInVisualMode := currentViMode in [mVisual, mVisualLine, mVisualBlock];
+
   // if we are in visual mode and we have an outstanding command to match (like the wrong key), we clear it and stay in visual
-  if not ((currentViMode = mVisual) and (FCurrentOperation.CommandToMatch <> '')) then
+  if not (wasInVisualMode and (FCurrentOperation.CommandToMatch <> '')) then
+  begin
+    // Clear selection when exiting visual mode
+    if wasInVisualMode then
+    begin
+      aBuffer := GetEditBuffer;
+      if aBuffer <> nil then
+      begin
+        aSelection := aBuffer.EditBlock;
+        aSelection.Reset;
+      end;
+    end;
     currentViMode := mNormal;
+  end;
 
   FCurrentOperation.Reset(false);
 
@@ -477,6 +497,8 @@ begin
   FOperatorBindings.Add('gu', TOperatorLowercase);
   FOperatorBindings.Add('gc', TOperatorComment);
   FOperatorBindings.Add('v', TOperatorVisualMode);
+  FOperatorBindings.Add('V', TOperatorVisualLineMode);
+  FOperatorBindings.Add('<C-v>', TOperatorVisualBlockMode);
 
   // motions
   FMotionBindings.Add('w', TMotionWord);

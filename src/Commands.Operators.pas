@@ -73,6 +73,16 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
   end;
 
+  TOperatorVisualLineMode = class(TOperator)
+    function GetBlockAction: TBlockAction; override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
+  end;
+
+  TOperatorVisualBlockMode = class(TOperator)
+    function GetBlockAction: TBlockAction; override;
+    procedure Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean); override;
+  end;
+
   function CharAtRelativeLocation(aCursorPosition: IOTAEditPosition; ACol: Integer): TCharClass;
   function GetPositionForMove(aCursorPosition: IOTAEditPosition; aNormalMotion: IMoveMotion; forEdition: boolean;
       ACount: Integer = 1; fullLines: boolean = false): TOTAEditPos;
@@ -265,6 +275,32 @@ end;
 function TOperatorComment.GetBlockAction: TBlockAction;
 begin
   result := baComment;
+end;
+
+{ TOperatorVisualLineMode }
+
+procedure TOperatorVisualLineMode.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
+begin
+  inherited;
+  FEngine.CurrentViMode := mNormal;
+end;
+
+function TOperatorVisualLineMode.GetBlockAction: TBlockAction;
+begin
+  result := baVisualLine;
+end;
+
+{ TOperatorVisualBlockMode }
+
+procedure TOperatorVisualBlockMode.Execute(aCursorPosition: IOTAEditPosition; lpos: TOTAEditPos; fullLine: boolean);
+begin
+  inherited;
+  FEngine.CurrentViMode := mNormal;
+end;
+
+function TOperatorVisualBlockMode.GetBlockAction: TBlockAction;
+begin
+  result := baVisualBlock;
 end;
 
 end.

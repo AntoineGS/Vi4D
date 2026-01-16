@@ -10,8 +10,8 @@ uses
 
 type
   TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baComment,
-      baVisual);
-  TViMode = (mInactive, mNormal, mInsert, mVisual, mSearch);
+      baVisual, baVisualLine, baVisualBlock);
+  TViMode = (mInactive, mNormal, mInsert, mVisual, mVisualLine, mVisualBlock, mSearch);
   TDirection = (dForward, dBack);
 
   TMark = record
@@ -330,6 +330,10 @@ begin
         ToggleComment(aCursorPosition, AIsLine);
       baVisual:
         FEngine.currentViMode := mVisual;
+      baVisualLine:
+        FEngine.currentViMode := mVisualLine;
+      baVisualBlock:
+        FEngine.currentViMode := mVisualBlock;
     end;
   finally
     if restoreCustorPosition then

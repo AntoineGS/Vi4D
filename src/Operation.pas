@@ -57,7 +57,8 @@ type
 implementation
 
 uses
-  NavUtils;
+  NavUtils,
+  Math;
 
 function TOperation.TryAddToCount(const aString: string): boolean;
 var
@@ -152,6 +153,7 @@ var
   aMotionDown: TMotionDown;
   lpos: TOTAEditPos;
   aSelection: IOTAEditBlock;
+  aBuffer: IOTAEditBuffer;
 begin
   if aOperatorClass = nil then
     Raise Exception.Create('aOperatorCClass must be set in call to SetAndExecuteIfComplete');
@@ -162,12 +164,70 @@ begin
   aMotionDown := nil;
   aOperator := aOperatorClass.Create(FClipboard, FEngine);
   try
-    // special cases for Visual mode
+    // special cases for Visual modes
     if aOperatorClass = TOperatorVisualMode then
+    begin
+      // Pressing v when already in visual mode -> exit to normal
+      // Pressing v when in visual line/block mode -> switch to visual mode
       if FEngine.CurrentViMode = mVisual then
         FEngine.CurrentViMode := mNormal
       else
+      begin
+        aBuffer := GetEditBuffer;
+        aSelection := aBuffer.EditBlock;
+        // Reset selection style for character visual mode
+        if FEngine.CurrentViMode in [mVisualLine, mVisualBlock] then
+          aSelection.Style := btNonInclusive;
+        // Start selection if not already selected
+        if aSelection.Size = 0 then
+        begin
+          aSelection.Reset;
+          aSelection.BeginBlock;
+          aSelection.Extend(aCursorPosition.Row, aCursorPosition.Column + 1);
+        end;
         FEngine.CurrentViMode := mVisual;
+      end;
+      Reset(false);
+      Exit;
+    end
+    else if aOperatorClass = TOperatorVisualLineMode then
+    begin
+      // Pressing V when already in visual line mode -> exit to normal
+      // Pressing V when in visual/visual block mode -> switch to visual line mode
+      if FEngine.CurrentViMode = mVisualLine then
+        FEngine.CurrentViMode := mNormal
+      else
+      begin
+        aBuffer := GetEditBuffer;
+        aSelection := aBuffer.EditBlock;
+        aSelection.Reset;
+        aSelection.Style := btLine;
+        aSelection.BeginBlock;
+        aSelection.Extend(aCursorPosition.Row, aCursorPosition.Column + 1);
+        FEngine.CurrentViMode := mVisualLine;
+      end;
+      Reset(false);
+      Exit;
+    end
+    else if aOperatorClass = TOperatorVisualBlockMode then
+    begin
+      // Pressing Ctrl+V when already in visual block mode -> exit to normal
+      // Pressing Ctrl+V when in visual/visual line mode -> switch to visual block mode
+      if FEngine.CurrentViMode = mVisualBlock then
+        FEngine.CurrentViMode := mNormal
+      else
+      begin
+        aBuffer := GetEditBuffer;
+        aSelection := aBuffer.EditBlock;
+        aSelection.Reset;
+        aSelection.Style := btColumn;
+        aSelection.BeginBlock;
+        aSelection.Extend(aCursorPosition.Row, aCursorPosition.Column);
+        FEngine.CurrentViMode := mVisualBlock;
+      end;
+      Reset(false);
+      Exit;
+    end;
 
     if FOperator = nil then
     begin
@@ -178,7 +238,14 @@ begin
 
       if (aSelection.Size <> 0) then
       begin
-        FOperator.Execute(aCursorPosition, lpos, false);
+        // In visual line mode, operations are always full line
+        FOperator.Execute(aCursorPosition, lpos, FEngine.CurrentViMode = mVisualLine);
+        // Exit visual mode after executing operator on selection
+        if FEngine.CurrentViMode in [mVisual, mVisualLine, mVisualBlock] then
+        begin
+          aSelection.Reset;
+          FEngine.CurrentViMode := mNormal;
+        end;
         Reset(true);
       end;
 
@@ -234,6 +301,7 @@ procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; 
 var
   aEdition: TEdition;
   aSearchMotion: ISearchMotion;
+  aSelection: IOTAEditBlock;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
@@ -249,6 +317,14 @@ begin
     aEdition.Execute(aCursorPosition, FCount);
   finally
     aEdition.Free;
+  end;
+
+  // Exit visual mode after executing edition
+  if FEngine.CurrentViMode in [mVisual, mVisualLine, mVisualBlock] then
+  begin
+    aSelection := GetEditBuffer.EditBlock;
+    aSelection.Reset;
+    FEngine.CurrentViMode := mNormal;
   end;
 
   Reset(false);
