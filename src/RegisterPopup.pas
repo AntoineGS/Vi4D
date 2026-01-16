@@ -60,8 +60,8 @@ uses
   NavUtils;
 
 const
-  MAX_TEXT_PREVIEW = 50;
-  MAX_LINE_PREVIEW = 60;
+  MAX_TEXT_PREVIEW = 90;
+  MAX_LINE_PREVIEW = 100;
 
 function GetLineFromFile(const AFileName: string; ALine: Integer): string;
 var
