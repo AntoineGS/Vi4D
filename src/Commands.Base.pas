@@ -277,14 +277,16 @@ begin
   try
     LSelection := aSelectionFunc();
     LTemp := LSelection.Text;
-    FClipboard.SetCurrentRegisterIsLine(AIsLine);
-    FClipboard.SetCurrentRegisterText(LTemp);
 
     case AAction of
       baDelete:
-        LSelection.Delete;
+        begin
+          FClipboard.StoreDelete(LTemp, AIsLine);
+          LSelection.Delete;
+        end;
       baChange:
         begin
+          FClipboard.StoreDelete(LTemp, AIsLine);
           LSelection.Delete;
 
           if AIsLine then
@@ -301,7 +303,10 @@ begin
           FEngine.currentViMode := mInsert;
         end;
       baYank:
-        LSelection.Reset;
+        begin
+          FClipboard.StoreYank(LTemp, AIsLine);
+          LSelection.Reset;
+        end;
       baIndentLeft:
         ChangeIndentation(aCursorPosition, dBack);
       baIndentRight:

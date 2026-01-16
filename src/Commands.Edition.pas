@@ -203,8 +203,12 @@ end;
 { TEditionDeleteCharacter }
 
 procedure TEditionDeleteCharacter.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  deletedText: string;
 begin
   inherited;
+  deletedText := aCursorPosition.Read(aCount);
+  FClipboard.StoreDelete(deletedText, False);
   aCursorPosition.Delete(aCount);
 end;
 
@@ -283,8 +287,12 @@ end;
 { TEditionDeleteCharInsert }
 
 procedure TEditionDeleteCharInsert.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  deletedText: string;
 begin
   inherited;
+  deletedText := aCursorPosition.Read(aCount);
+  FClipboard.StoreDelete(deletedText, False);
   aCursorPosition.Delete(aCount);
   FEngine.currentViMode := mInsert;
 end;
@@ -448,9 +456,13 @@ end;
 { TEditionDeletePreviousCharacter }
 
 procedure TEditionDeletePreviousCharacter.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  deletedText: string;
 begin
   inherited;
   aCursorPosition.MoveRelative(0, -aCount);
+  deletedText := aCursorPosition.Read(aCount);
+  FClipboard.StoreDelete(deletedText, False);
   aCursorPosition.Delete(aCount);
 end;
 

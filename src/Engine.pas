@@ -346,10 +346,15 @@ begin
   keepChar := False;
   aCursorPosition := GetEditPosition(aBuffer);
 
-  // Handle register selection with " prefix (e.g., "a for register a)
+  // Handle register selection with " prefix (e.g., "a for register a, "1 for register 1)
   if (Length(commandToMatch) = 2) and (commandToMatch[1] = '"') then
   begin
-    FClipboard.SetSelectedRegister(Ord(commandToMatch[2]));
+    // For numbered registers 0-9, use actual number as index
+    if CharInSet(commandToMatch[2], ['0'..'9']) then
+      FClipboard.SetSelectedRegister(Ord(commandToMatch[2]) - Ord('0'))
+    else
+      // For named registers a-z, use ASCII value as index
+      FClipboard.SetSelectedRegister(Ord(commandToMatch[2]));
     FCurrentOperation.ClearCommandToMatch;
     Exit;
   end;
