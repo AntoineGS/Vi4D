@@ -65,7 +65,6 @@ versions of Delphi, it works great in D2010 though.
 ## Particularities (things that are not planned)
 
 - `L` goes to last -1 line, due to IDE auto-scrolling if we to to the last line
-- `Fx` and `Tx` only work on a line
 
 ## License
 
