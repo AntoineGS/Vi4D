@@ -23,6 +23,13 @@ type
     procedure StartSearchMode;
   end;
 
+  ISearchMotion = interface
+  ['{D8DEFB88-FBC8-4B7C-984C-6F50E27A8213}']
+    function GetSearchToken: string;
+    procedure SetSearchToken(const aValue: string);
+    property SearchToken: string read GetSearchToken write SetSearchToken;
+  end;
+
   TCommand = class(TSingletonImplementation)
   protected
     FEngine: IEngine;

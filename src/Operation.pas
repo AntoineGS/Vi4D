@@ -36,7 +36,8 @@ type
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aOperatorClass: TOperatorClass); overload;
     procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aMotionClass: TMotionClass;
         searchToken: string = ''); overload;
-    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aEditionClass: TEditionClass); overload;
+    procedure SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aEditionClass: TEditionClass;
+        searchToken: string = ''); overload;
     procedure SetAndExecuteIfComplete(aExClass: TExClass); overload;
 
     procedure AddToCommandToMatch(const aString: string);
@@ -228,9 +229,11 @@ begin
   Reset(FOperator <> nil);
 end;
 
-procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aEditionClass: TEditionClass);
+procedure TOperation.SetAndExecuteIfComplete(aCursorPosition: IOTAEditPosition; aEditionClass: TEditionClass;
+    searchToken: string);
 var
   aEdition: TEdition;
+  aSearchMotion: ISearchMotion;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to SetAndExecuteIfComplete');
@@ -240,6 +243,9 @@ begin
 
   aEdition := aEditionClass.Create(FClipboard, FEngine);
   try
+    if Supports(aEdition, ISearchMotion, aSearchMotion) then
+      aSearchMotion.SearchToken := searchToken;
+
     aEdition.Execute(aCursorPosition, FCount);
   finally
     aEdition.Free;

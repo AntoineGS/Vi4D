@@ -59,8 +59,14 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
-  TEditionReplaceChar = class(TEdition)
+  TEditionReplaceChar = class(TEdition, ISearchMotion)
+  private
+    FSearchToken: string;
+  public
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+    function GetSearchToken: string;
+    procedure SetSearchToken(const aValue: string);
+    property SearchToken: string read GetSearchToken write SetSearchToken;
   end;
 
   TEditionReplaceMode = class(TEdition)
@@ -194,17 +200,38 @@ end;
 
 { TEditionReplaceChar }
 
+function TEditionReplaceChar.GetSearchToken: string;
+begin
+  Result := FSearchToken;
+end;
+
+procedure TEditionReplaceChar.SetSearchToken(const aValue: string);
+begin
+  FSearchToken := aValue;
+end;
+
 procedure TEditionReplaceChar.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
-  aEditionDeleteCharInsert: TEditionDeleteCharInsert;
+  i: Integer;
+  replaceChar: Char;
 begin
   inherited;
-  aEditionDeleteCharInsert := TEditionDeleteCharInsert.Create(FClipboard, FEngine);
-  try
-    aEditionDeleteCharInsert.Execute(aCursorPosition, aCount);
-  finally
-    aEditionDeleteCharInsert.Free;
-  end;
+
+  // Need a character to replace with
+  if Length(FSearchToken) = 0 then
+    Exit;
+
+  replaceChar := FSearchToken[1];
+
+  // Delete aCount characters and insert replacement
+  aCursorPosition.Delete(aCount);
+  for i := 1 to aCount do
+    aCursorPosition.InsertCharacter(replaceChar);
+
+  // Move cursor back to last replaced character (Vim behavior)
+  aCursorPosition.MoveRelative(0, -1);
+
+  // Stay in Normal mode - don't change FEngine.currentViMode
 end;
 
 { TEditionUndo }

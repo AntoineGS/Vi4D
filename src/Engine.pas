@@ -364,11 +364,16 @@ begin
     len := Length(commandToMatch);
     if len >= 2 then
     begin
-      // only support for these for the time being
+      // Support for two+ character commands where the last character is a search token (+)
       searchString := copy(commandToMatch, 0, len - 1) + '+';
       if FMotionBindings.TryGetValue(searchString, aMotionClass) then
       begin
         FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aMotionClass, copy(commandToMatch, len, 1));
+        keepChar := False;
+      end
+      else if (FCurrentOperation.OperatorCommand = nil) and FEditionBindings.TryGetValue(searchString, aEditionClass) then
+      begin
+        FCurrentOperation.SetAndExecuteIfComplete(aCursorPosition, aEditionClass, copy(commandToMatch, len, 1));
         keepChar := False;
       end;
     end;
@@ -451,7 +456,7 @@ begin
   FEditionBindings.Add('D', TEditionDeleteTilEOL);
   FEditionBindings.Add('C', TEditionChangeTilEOL);
   FEditionBindings.Add('Y', TEditionYankTilEOL);
-  FEditionBindings.Add('r', TEditionReplaceChar);
+  FEditionBindings.Add('r+', TEditionReplaceChar);
   FEditionBindings.Add('R', TEditionReplaceMode);
   FEditionBindings.Add('u', TEditionUndo);
   FEditionBindings.Add('<C-r>', TEditionRedo);
