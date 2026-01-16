@@ -89,6 +89,7 @@
         <DCCReference Include="src\Commands.Edition.pas"/>
         <DCCReference Include="src\Commands.IAMotion.pas"/>
         <DCCReference Include="src\Commands.Ex.pas"/>
+        <DCCReference Include="src\RegisterPopup.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

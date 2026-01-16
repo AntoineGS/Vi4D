@@ -36,7 +36,8 @@ uses
   Commands.Ex,
   Operation,
   Clipboard,
-  AppEvnts;
+  AppEvnts,
+  RegisterPopup;
 
 type
   TCaptionChangeProc = reference to procedure(aCaption: String);
@@ -58,6 +59,7 @@ type
     FSearchString: string;
     FSearchStartPos: TOTAEditPos;
     FMarkArray: array [0 .. 255] of TMark;
+    FPopupManager: TPopupManager;
 
     procedure FillBindings;
     procedure HandleChar(const AChar: Char);
@@ -133,11 +135,13 @@ begin
   FCurrentOperation.onCommandChanged := OnCommandChanged;
   FEvents := TApplicationEvents.Create(nil);
   FEvents.OnIdle := DoApplicationIdle;
+  FPopupManager := TPopupManager.Create(FClipboard, GetMark);
   FillBindings;
 end;
 
 destructor TEngine.Destroy;
 begin
+  FPopupManager.Free;
   FEvents.Free;
   FCurrentOperation.Free;
   FClipboard.Free;
@@ -280,6 +284,9 @@ var
   aBuffer: IOTAEditBuffer;
   aCursorPosition: IOTAEditPosition;
 begin
+  // Hide popup when operation is reset/cancelled
+  FPopupManager.HidePopup;
+
   // if we are in visual mode and we have an outstanding command to match (like the wrong key), we clear it and stay in visual
   if not ((currentViMode = mVisual) and (FCurrentOperation.CommandToMatch <> '')) then
     currentViMode := mNormal;
@@ -346,9 +353,18 @@ begin
   keepChar := False;
   aCursorPosition := GetEditPosition(aBuffer);
 
+  // Show popup for register selection when " is pressed (non-modal)
+  if (commandToMatch = '"') then
+  begin
+    FPopupManager.ShowRegisterPopup;
+    Exit;
+  end;
+
   // Handle register selection with " prefix (e.g., "a for register a, "1 for register 1)
   if (Length(commandToMatch) = 2) and (commandToMatch[1] = '"') then
   begin
+    // Update popup selection as user types (use Copy to convert Char to string)
+    FPopupManager.UpdateSelection(Copy(commandToMatch, 2, 1));
     // For numbered registers 0-9, use actual number as index
     if CharInSet(commandToMatch[2], ['0'..'9']) then
       FClipboard.SetSelectedRegister(Ord(commandToMatch[2]) - Ord('0'))
@@ -357,6 +373,21 @@ begin
       FClipboard.SetSelectedRegister(Ord(commandToMatch[2]));
     FCurrentOperation.ClearCommandToMatch;
     Exit;
+  end;
+
+  // Show popup for mark selection when ' or ` is pressed (non-modal)
+  if (commandToMatch = '''') or (commandToMatch = '`') then
+  begin
+    FPopupManager.ShowMarkPopup;
+    Exit;
+  end;
+
+  // Handle mark selection with ' or ` prefix
+  if (Length(commandToMatch) = 2) and ((commandToMatch[1] = '''') or (commandToMatch[1] = '`')) then
+  begin
+    // Update popup selection as user types (use Copy to convert Char to string)
+    FPopupManager.UpdateSelection(Copy(commandToMatch, 2, 1));
+    // Don't exit - let normal motion processing handle it
   end;
 
   if FCurrentOperation.IsAFullLineOperation then
@@ -395,7 +426,11 @@ begin
   end;
 
   if not keepChar then
+  begin
     FCurrentOperation.ClearCommandToMatch;
+    // Hide popup when command is completed
+    FPopupManager.HidePopup;
+  end;
 end;
 
 procedure TEngine.LButtonDown;

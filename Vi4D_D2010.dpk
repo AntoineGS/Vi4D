@@ -39,6 +39,7 @@ contains
   Clipboard in 'src\Clipboard.pas',
   Commands.Edition in 'src\Commands.Edition.pas',
   Commands.IAMotion in 'src\Commands.IAMotion.pas',
-  Commands.Ex in 'src\Commands.Ex.pas';
+  Commands.Ex in 'src\Commands.Ex.pas',
+  RegisterPopup in 'src\RegisterPopup.pas';
 
 end.
