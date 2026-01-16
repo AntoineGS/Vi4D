@@ -14,6 +14,13 @@ type
   TViMode = (mInactive, mNormal, mInsert, mVisual, mSearch);
   TDirection = (dForward, dBack);
 
+  TMark = record
+    FileName: string;
+    Line: Integer;
+    Col: Integer;
+    IsSet: Boolean;
+  end;
+
   IEngine = interface
   ['{F2D38261-228B-4CC2-9D86-EC9D39CA63A8}']
     function GetViMode: TViMode;
@@ -21,6 +28,8 @@ type
     property CurrentViMode: TViMode read GetViMode write SetViMode;
     procedure ExecuteLastCommand;
     procedure StartSearchMode;
+    procedure SetMark(aIndex: Integer; const aFileName: string; aLine, aCol: Integer);
+    function GetMark(aIndex: Integer): TMark;
   end;
 
   ISearchMotion = interface

@@ -216,6 +216,26 @@ type
     function GetSelection(aCursorPosition: IOTAEditPosition): IOTAEditBlock;
   end;
 
+  TMotionGoToMarkLine = class(TMotion, IMoveMotion, ISearchMotion)
+  private
+    FSearchToken: string;
+  public
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
+    function GetSearchToken: string;
+    procedure SetSearchToken(const aValue: string);
+    property SearchToken: string read GetSearchToken write SetSearchToken;
+  end;
+
+  TMotionGoToMarkExact = class(TMotion, IMoveMotion, ISearchMotion)
+  private
+    FSearchToken: string;
+  public
+    procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
+    function GetSearchToken: string;
+    procedure SetSearchToken(const aValue: string);
+    property SearchToken: string read GetSearchToken write SetSearchToken;
+  end;
+
 implementation
 
 uses
@@ -1145,6 +1165,113 @@ begin
     Exit;
 
   aBuffer.TopView.Center(aCursorPosition.Row, aCursorPosition.Column);
+end;
+
+{ TMotionGoToMarkLine }
+
+function TMotionGoToMarkLine.GetSearchToken: string;
+begin
+  Result := FSearchToken;
+end;
+
+procedure TMotionGoToMarkLine.SetSearchToken(const aValue: string);
+begin
+  FSearchToken := aValue;
+end;
+
+procedure TMotionGoToMarkLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  mark: TMark;
+  markIndex: Integer;
+  aBuffer: IOTAEditBuffer;
+  moduleServices: IOTAModuleServices;
+begin
+  inherited;
+
+  if Length(FSearchToken) = 0 then
+    Exit;
+
+  markIndex := Ord(FSearchToken[1]);
+  mark := FEngine.GetMark(markIndex);
+
+  if not mark.IsSet then
+    Exit;
+
+  aBuffer := GetEditBuffer;
+  if aBuffer = nil then
+    Exit;
+
+  // Open file if different
+  if not SameFileName(aBuffer.FileName, mark.FileName) then
+  begin
+    QuerySvcs(BorlandIDEServices, IOTAModuleServices, moduleServices);
+    if moduleServices <> nil then
+      moduleServices.OpenModule(mark.FileName);
+    aBuffer := GetEditBuffer;
+    if aBuffer = nil then
+      Exit;
+    aCursorPosition := GetEditPosition(aBuffer);
+    if aCursorPosition = nil then
+      Exit;
+  end;
+
+  // Move to line, first non-blank
+  aCursorPosition.GotoLine(mark.Line);
+  aCursorPosition.MoveBOL;
+  if aCursorPosition.IsWhiteSpace then
+    aCursorPosition.MoveCursor(mmSkipWhite or mmSkipRight);
+end;
+
+{ TMotionGoToMarkExact }
+
+function TMotionGoToMarkExact.GetSearchToken: string;
+begin
+  Result := FSearchToken;
+end;
+
+procedure TMotionGoToMarkExact.SetSearchToken(const aValue: string);
+begin
+  FSearchToken := aValue;
+end;
+
+procedure TMotionGoToMarkExact.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+var
+  mark: TMark;
+  markIndex: Integer;
+  aBuffer: IOTAEditBuffer;
+  moduleServices: IOTAModuleServices;
+begin
+  inherited;
+
+  if Length(FSearchToken) = 0 then
+    Exit;
+
+  markIndex := Ord(FSearchToken[1]);
+  mark := FEngine.GetMark(markIndex);
+
+  if not mark.IsSet then
+    Exit;
+
+  aBuffer := GetEditBuffer;
+  if aBuffer = nil then
+    Exit;
+
+  // Open file if different
+  if not SameFileName(aBuffer.FileName, mark.FileName) then
+  begin
+    QuerySvcs(BorlandIDEServices, IOTAModuleServices, moduleServices);
+    if moduleServices <> nil then
+      moduleServices.OpenModule(mark.FileName);
+    aBuffer := GetEditBuffer;
+    if aBuffer = nil then
+      Exit;
+    aCursorPosition := GetEditPosition(aBuffer);
+    if aCursorPosition = nil then
+      Exit;
+  end;
+
+  // Move to exact position
+  aCursorPosition.Move(mark.Line, mark.Col);
 end;
 
 initialization

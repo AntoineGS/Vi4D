@@ -125,6 +125,16 @@ type
     procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
   end;
 
+  TEditionSetMark = class(TEdition, ISearchMotion)
+  private
+    FSearchToken: string;
+  public
+    procedure Execute(aCursorPosition: IOTAEditPosition; aCount: integer); override;
+    function GetSearchToken: string;
+    procedure SetSearchToken(const aValue: string);
+    property SearchToken: string read GetSearchToken write SetSearchToken;
+  end;
+
 implementation
 
 uses
@@ -557,6 +567,37 @@ procedure TEditionSearch.Execute(aCursorPosition: IOTAEditPosition; aCount: inte
 begin
   inherited;
   FEngine.StartSearchMode;
+end;
+
+{ TEditionSetMark }
+
+function TEditionSetMark.GetSearchToken: string;
+begin
+  Result := FSearchToken;
+end;
+
+procedure TEditionSetMark.SetSearchToken(const aValue: string);
+begin
+  FSearchToken := aValue;
+end;
+
+procedure TEditionSetMark.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
+var
+  markIndex: Integer;
+  aBuffer: IOTAEditBuffer;
+begin
+  inherited;
+
+  if Length(FSearchToken) = 0 then
+    Exit;
+
+  markIndex := Ord(FSearchToken[1]);
+  aBuffer := GetEditBuffer;
+
+  if aBuffer = nil then
+    Exit;
+
+  FEngine.SetMark(markIndex, aBuffer.FileName, aCursorPosition.Row, aCursorPosition.Column);
 end;
 
 end.

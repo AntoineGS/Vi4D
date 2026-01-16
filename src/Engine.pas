@@ -57,7 +57,7 @@ type
     FEvents: TApplicationEvents;
     FSearchString: string;
     FSearchStartPos: TOTAEditPos;
-    //FMarkArray: array [0 .. 255] of TOTAEditPos;
+    FMarkArray: array [0 .. 255] of TMark;
 
     procedure FillBindings;
     procedure HandleChar(const AChar: Char);
@@ -85,6 +85,8 @@ type
     procedure ConfigureCursor;
     procedure ToggleActive;
     procedure StartSearchMode;
+    procedure SetMark(aIndex: Integer; const aFileName: string; aLine, aCol: Integer);
+    function GetMark(aIndex: Integer): TMark;
   end;
 
 implementation
@@ -478,6 +480,11 @@ begin
   FEditionBindings.Add(#9, TEditionNextBuffer);
   FEditionBindings.Add('<S-'#9'>', TEditionPrevBuffer);
   FEditionBindings.Add('/', TEditionSearch);
+  FEditionBindings.Add('m+', TEditionSetMark);
+
+  // Mark motions
+  FMotionBindings.Add('''+', TMotionGoToMarkLine);
+  FMotionBindings.Add('`+', TMotionGoToMarkExact);
 
   // todo: this can probably get refactored to be more generic, eg a is all and can be added to most commands
   // add :w* to take in a filename
@@ -660,6 +667,30 @@ begin
   FSearchString := '';
   currentViMode := mNormal;
   FCurrentOperation.Reset(False);
+end;
+
+procedure TEngine.SetMark(aIndex: Integer; const aFileName: string; aLine, aCol: Integer);
+begin
+  if (aIndex >= 0) and (aIndex <= 255) then
+  begin
+    FMarkArray[aIndex].FileName := aFileName;
+    FMarkArray[aIndex].Line := aLine;
+    FMarkArray[aIndex].Col := aCol;
+    FMarkArray[aIndex].IsSet := True;
+  end;
+end;
+
+function TEngine.GetMark(aIndex: Integer): TMark;
+begin
+  if (aIndex >= 0) and (aIndex <= 255) then
+    Result := FMarkArray[aIndex]
+  else
+  begin
+    Result.IsSet := False;
+    Result.FileName := '';
+    Result.Line := 0;
+    Result.Col := 0;
+  end;
 end;
 
 end.
