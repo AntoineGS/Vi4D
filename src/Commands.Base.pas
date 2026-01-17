@@ -11,7 +11,7 @@ uses
 type
   TBlockAction = (baDelete, baChange, baYank, baIndentLeft, baIndentRight, baUppercase, baLowercase, baComment,
       baVisual, baVisualLine, baVisualBlock);
-  TViMode = (mInactive, mNormal, mInsert, mVisual, mVisualLine, mVisualBlock, mSearch);
+  TViMode = (mInactive, mNormal, mInsert, mVisual, mVisualLine, mVisualBlock, mSearch, mSubstitute);
   TDirection = (dForward, dBack);
 
   TMark = record

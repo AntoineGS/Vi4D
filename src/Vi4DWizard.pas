@@ -137,6 +137,7 @@ begin
     mInsert: aColor := WebColorStrToColor('#c678dd');
     mVisual: aColor := WebColorStrToColor('#d19a66');
     mVisualLine, mVisualBlock: aColor := WebColorStrToColor('#f0c89a');
+    mSubstitute: aColor := WebColorStrToColor('#e06c75');
   end;
 
   if aColor = clNone then
