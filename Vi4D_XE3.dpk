@@ -43,6 +43,9 @@ contains
   Commands.Edition in 'src\Commands.Edition.pas',
   Commands.IAMotion in 'src\Commands.IAMotion.pas',
   Commands.Ex in 'src\Commands.Ex.pas',
-  RegisterPopup in 'src\RegisterPopup.pas';
+  RegisterPopup in 'src\RegisterPopup.pas',
+  Engine.Common in 'src\Engine.Common.pas',
+  Engine.Search in 'src\Engine.Search.pas',
+  Engine.Substitute in 'src\Engine.Substitute.pas';
 
 end.

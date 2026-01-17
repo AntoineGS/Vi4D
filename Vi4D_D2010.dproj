@@ -74,6 +74,9 @@
 			<DCCReference Include="src\Commands.IAMotion.pas"/>
 			<DCCReference Include="src\Commands.Ex.pas"/>
 			<DCCReference Include="src\RegisterPopup.pas"/>
+			<DCCReference Include="src\Engine.Common.pas"/>
+			<DCCReference Include="src\Engine.Search.pas"/>
+			<DCCReference Include="src\Engine.Substitute.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
