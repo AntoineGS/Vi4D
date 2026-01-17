@@ -1158,6 +1158,7 @@ procedure MoveScreen(aCursorPosition: IOTAEditPosition; aCount: integer; isDown:
 var
   aBuffer: IOTAEditBuffer;
   halfScreen: integer;
+  lEditPos: TOTAEditPos;
 begin
   aBuffer := GetEditBuffer;
 
@@ -1174,7 +1175,9 @@ begin
   if isDown then
     halfScreen := -halfScreen;
 
-  aCursorPosition.MoveRelative(halfScreen, 0);
+  lEditPos.Line := aCursorPosition.Row + halfScreen;
+  lEditPos.Col := aCursorPosition.Column;
+  aBuffer.TopView.SetCursorPos(lEditPos);
   aBuffer.TopView.Center(aCursorPosition.Row, aCursorPosition.Column);
 end;
 

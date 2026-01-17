@@ -309,10 +309,26 @@ end;
 procedure TEditionUndo.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
+  aEditView140: IOTAEditView140;
+  lRow, lCol: Integer;
+  lEditPos: TOTAEditPos;
 begin
   inherited;
   aBuffer := GetEditBuffer;
   aBuffer.Undo;
+  
+  if Supports(aBuffer.TopView, IOTAEditView140, aEditView140) then
+  begin
+    lRow := aEditView140.GetLastEditRow;
+    lCol := aEditView140.GetLastEditColumn;
+    if (lRow > 0) and (lCol > 0) then
+    begin
+      lEditPos.Line := lRow;
+      lEditPos.Col := lCol;
+      aBuffer.TopView.SetCursorPos(lEditPos);
+      aBuffer.TopView.MoveViewToCursor;
+    end;
+  end;
 end;
 
 { TEditionInsert }
@@ -552,10 +568,26 @@ end;
 procedure TEditionRedo.Execute(aCursorPosition: IOTAEditPosition; aCount: integer);
 var
   aBuffer: IOTAEditBuffer;
+  aEditView140: IOTAEditView140;
+  lRow, lCol: Integer;
+  lEditPos: TOTAEditPos;
 begin
   inherited;
   aBuffer := GetEditBuffer;
   aBuffer.Redo;
+  
+  if Supports(aBuffer.TopView, IOTAEditView140, aEditView140) then
+  begin
+    lRow := aEditView140.GetLastEditRow;
+    lCol := aEditView140.GetLastEditColumn;
+    if (lRow > 0) and (lCol > 0) then
+    begin
+      lEditPos.Line := lRow;
+      lEditPos.Col := lCol;
+      aBuffer.TopView.SetCursorPos(lEditPos);
+      aBuffer.TopView.MoveViewToCursor;
+    end;
+  end;
 end;
 
 { TEditionYankTilEOL }
