@@ -48,19 +48,9 @@ versions of Delphi, it works great in D2010 though.
 
 - Support for (maybe) `=`
 - Complete the inside/around featuresets (paragraphs, tags, blocks, word)
-- Undoing operations that are more than one smaller operations require undoing
-  each smaller operation, find a way to 'group' operations
-- :s/_/_
 - Configurable bindings
 - Look at bringing back the DLL debugging doc and project from the original
   repo, as it seems for newer versions of Delphi debugging bds.exe does not work
-
-## Known issues (plan to address)
-
-- Undo and Redo do not bring the cursor back to the change
-- After using some motions like Inside\Around when the cursor is before the text
-  to change (like before the opening bracket), the view is changed with the
-  cursor on the top line
 
 ## Particularities (things that are not planned)
 
