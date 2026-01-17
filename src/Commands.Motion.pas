@@ -143,11 +143,11 @@ type
 
   TMotionFirstLine = class(TMotion, IMoveMotion, IExecuteMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
+    function DefaultCount: integer; override;
   end;
 
-  TMotionGoToLine = class(TMotion, IMoveMotion, IExecuteMotion)
+  TMotionGoToLastLine = class(TMotion, IMoveMotion, IExecuteMotion)
     procedure Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean); override;
-    function DefaultCount: integer; override;
   end;
 
   TMotionNextMatch = class(TMotion, IMoveMotion, IExecuteMotion)
@@ -435,21 +435,12 @@ begin
   aCursorPosition.MoveEOL;
 end;
 
-{ TMotionGoToLine }
+{ TMotionGoToLastLine }
 
-function TMotionGoToLine.DefaultCount: integer;
-begin
-  result := 0;
-end;
-
-procedure TMotionGoToLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
+procedure TMotionGoToLastLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   inherited;
-
-  if aCount = 0 then
-    aCursorPosition.MoveEOF
-  else
-    aCursorPosition.GotoLine(aCount);
+  aCursorPosition.MoveEOF;
 end;
 
 { TMotionFirstLine }
@@ -457,7 +448,16 @@ end;
 procedure TMotionFirstLine.Move(aCursorPosition: IOTAEditPosition; aCount: integer; forEdition: boolean);
 begin
   inherited;
-  aCursorPosition.GotoLine(1);
+
+  if aCount = 0 then
+    aCursorPosition.GotoLine(1)
+  else
+    aCursorPosition.GotoLine(aCount);
+end;
+
+function TMotionFirstLine.DefaultCount: integer;
+begin
+  result := 0;
 end;
 
 { TMotionFindForward }

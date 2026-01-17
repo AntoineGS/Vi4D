@@ -527,7 +527,7 @@ begin
   FMotionBindings.add('$', TMotionEOL);
   FMotionBindings.add('_', TMotionBOLAfterWhiteSpace);
   FMotionBindings.add('gg', TMotionFirstLine);
-  FMotionBindings.add('G', TMotionGoToLine);
+  FMotionBindings.add('G', TMotionGoToLastLine);
   FMotionBindings.add('n', TMotionNextMatch);
   FMotionBindings.add('N', TMotionPreviousMatch);
   FMotionBindings.add('*', TMotionNextWholeWordUnderCursor);
