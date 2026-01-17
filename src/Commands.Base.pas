@@ -156,13 +156,23 @@ end;
 procedure ToggleComment(aCursorPosition: IOTAEditPosition; AIsLine: boolean);
 type
   TRunMode = (rmUnknown, rmCommenting, rmUncommenting);
+  TCommentEdit = record
+    CharPos: Integer;     // Linear character position
+    DeleteLen: Integer;   // Characters to delete (0 for insert only)
+    InsertText: string;   // Text to insert (empty for delete only)
+  end;
 var
   aSelection: IOTAEditBlock;
   aBuffer: IOTAEditBuffer;
+  aWriter: IOTAEditWriter;
   i: Integer;
   endingRow: Integer;
   runMode: TRunMode;
   startingRow: Integer;
+  edits: array of TCommentEdit;
+  editCount: Integer;
+  charPos: TOTACharPos;
+  lineText: string;
 begin
   if aCursorPosition = nil then
     Raise Exception.Create('aCursorPosition must be set in call to ToggleComment');
@@ -176,15 +186,8 @@ begin
   startingRow := aSelection.StartingRow;
 
   if aSelection.Size <> 0 then
-  begin
-    // When selecting multiple lines, if the cursor is in the first column the last line doesn't get into the block
-    // and the indent seems buggy, as the cursor is on the last line but it isn't indented, so we force
-    // the selection of at least one char to correct this behavior
     aSelection.ExtendRelative(0, 1);
-  end;
 
-  // this is done to remove an adjustment done in GetPositionForMove for full lines, which is meant to grab the
-  // new line character
   if AIsLine then
   begin
     if aCursorPosition.Row = endingRow then
@@ -192,6 +195,10 @@ begin
     else
       inc(startingRow);
   end;
+
+  // First pass: collect all edits
+  editCount := 0;
+  SetLength(edits, 0);
 
   for i := startingRow to endingRow do
   begin
@@ -209,14 +216,53 @@ begin
         runMode := rmCommenting;
     end;
 
+    // Get linear position
+    charPos.Line := aCursorPosition.Row;
+    charPos.CharIndex := aCursorPosition.Column - 1;
+
     if aCursorPosition.IsWordCharacter and (runMode = rmCommenting) then
-      aCursorPosition.InsertText('// ')
+    begin
+      SetLength(edits, editCount + 1);
+      edits[editCount].CharPos := aBuffer.TopView.CharPosToPos(charPos);
+      edits[editCount].DeleteLen := 0;
+      edits[editCount].InsertText := '// ';
+      Inc(editCount);
+    end
     else if runMode = rmUncommenting then
     begin
-      if aCursorPosition.Read(3) = '// ' then
-        aCursorPosition.Delete(3)
-      else if aCursorPosition.Read(2) = '//' then
-        aCursorPosition.Delete(2);
+      lineText := aCursorPosition.Read(3);
+      SetLength(edits, editCount + 1);
+      edits[editCount].CharPos := aBuffer.TopView.CharPosToPos(charPos);
+      edits[editCount].InsertText := '';
+      if lineText = '// ' then
+        edits[editCount].DeleteLen := 3
+      else if Copy(lineText, 1, 2) = '//' then
+        edits[editCount].DeleteLen := 2
+      else
+        edits[editCount].DeleteLen := 0;
+      if edits[editCount].DeleteLen > 0 then
+        Inc(editCount)
+      else
+        SetLength(edits, editCount); // Remove this edit
+    end;
+  end;
+
+  // Second pass: apply all edits using undoable writer
+  if editCount > 0 then
+  begin
+    aWriter := aBuffer.CreateUndoableWriter;
+    try
+      for i := 0 to editCount - 1 do
+      begin
+        aWriter.CopyTo(edits[i].CharPos);
+        if edits[i].DeleteLen > 0 then
+          aWriter.DeleteTo(edits[i].CharPos + edits[i].DeleteLen);
+        if edits[i].InsertText <> '' then
+          aWriter.Insert(PAnsiChar(AnsiString(edits[i].InsertText)));
+      end;
+      aWriter.CopyTo(MaxInt);
+    finally
+      aWriter := nil;
     end;
   end;
 
@@ -294,11 +340,13 @@ begin
         begin
           FClipboard.StoreDelete(LTemp, AIsLine);
           LSelection.Delete;
+          LSelection.Reset;
         end;
       baChange:
         begin
           FClipboard.StoreDelete(LTemp, AIsLine);
           LSelection.Delete;
+          LSelection.Reset;
 
           if AIsLine then
           begin

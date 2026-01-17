@@ -149,6 +149,11 @@ var
   LSelection: IOTAEditBlock;
   LRow, LCol: Integer;
   aBuffer: IOTAEditBuffer;
+  aWriter: IOTAEditWriter;
+  charPos: TOTACharPos;
+  linearPos: Integer;
+  deleteEndPos: Integer;
+  pasteText: AnsiString;
 
   function FixCursorPosition: Boolean;
   begin
@@ -161,35 +166,86 @@ begin
   LAutoIndent := ABuffer.BufferOptions.AutoIndent;
 
   LSelection := ABuffer.EditBlock;
+
+  // Calculate positions for the undoable writer
   if LSelection.Size > 0 then
   begin
     LPastingInSelection := True;
     LRow := LSelection.StartingRow;
     LCol := LSelection.StartingColumn;
-    LSelection.Delete;
-    AEditPosition.Move(LRow, LCol);
-  end;
 
-  if (aClipboard.CurrentRegister.IsLine) then
-  begin
-    ABuffer.BufferOptions.AutoIndent := False;
-    AEditPosition.MoveBOL;
+    // Get linear positions for selection
+    charPos.Line := LSelection.StartingRow;
+    charPos.CharIndex := LSelection.StartingColumn - 1;
+    linearPos := aBuffer.TopView.CharPosToPos(charPos);
 
-    if FixCursorPosition then
-      AEditPosition.MoveRelative(1, 0);
-
-    AEditPosition.Save;
-    AEditPosition.InsertText(aClipboard.CurrentRegister.Text);
-    AEditPosition.Restore;
-    ABuffer.BufferOptions.AutoIndent := LAutoIndent;
+    charPos.Line := LSelection.EndingRow;
+    charPos.CharIndex := LSelection.EndingColumn - 1;
+    deleteEndPos := aBuffer.TopView.CharPosToPos(charPos);
   end
   else
   begin
-    if FixCursorPosition then
-      AEditPosition.MoveRelative(0, 1);
+    LRow := AEditPosition.Row;
+    LCol := AEditPosition.Column;
 
-    AEditPosition.InsertText(aClipboard.CurrentRegister.Text);
+    if (aClipboard.CurrentRegister.IsLine) then
+    begin
+      AEditPosition.Save;
+      AEditPosition.MoveBOL;
+      if FixCursorPosition then
+        AEditPosition.MoveRelative(1, 0);
+
+      charPos.Line := AEditPosition.Row;
+      charPos.CharIndex := AEditPosition.Column - 1;
+      linearPos := aBuffer.TopView.CharPosToPos(charPos);
+      AEditPosition.Restore;
+    end
+    else
+    begin
+      if FixCursorPosition then
+      begin
+        charPos.Line := AEditPosition.Row;
+        charPos.CharIndex := AEditPosition.Column; // +1 for forward, but CharIndex is 0-based so no -1
+      end
+      else
+      begin
+        charPos.Line := AEditPosition.Row;
+        charPos.CharIndex := AEditPosition.Column - 1;
+      end;
+      linearPos := aBuffer.TopView.CharPosToPos(charPos);
+    end;
+    deleteEndPos := linearPos; // No deletion
   end;
+
+  // Prepare paste text
+  pasteText := AnsiString(aClipboard.CurrentRegister.Text);
+
+  // Apply using undoable writer
+  aWriter := aBuffer.CreateUndoableWriter;
+  try
+    aWriter.CopyTo(linearPos);
+    if deleteEndPos > linearPos then
+      aWriter.DeleteTo(deleteEndPos);
+    aWriter.Insert(PAnsiChar(pasteText));
+    aWriter.CopyTo(MaxInt);
+  finally
+    aWriter := nil;
+  end;
+
+  // Position cursor after paste
+  if LPastingInSelection then
+    AEditPosition.Move(LRow, LCol)
+  else if aClipboard.CurrentRegister.IsLine then
+  begin
+    AEditPosition.MoveBOL;
+    if FixCursorPosition then
+      AEditPosition.MoveRelative(1, 0);
+  end;
+  // For char paste, cursor stays where the writer left it (after inserted text)
+
+  // Restore auto-indent setting if we changed it
+  if (aClipboard.CurrentRegister.IsLine) then
+    ABuffer.BufferOptions.AutoIndent := LAutoIndent;
 end;
 
 { TEdition }

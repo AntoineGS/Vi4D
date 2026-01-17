@@ -243,7 +243,9 @@ begin
         // Exit visual mode after executing operator on selection
         if FEngine.CurrentViMode in [mVisual, mVisualLine, mVisualBlock] then
         begin
+          aSelection.Style := btNonInclusive;  // Reset block style
           aSelection.Reset;
+          aSelection.EndBlock;  // Ensure block is properly ended
           FEngine.CurrentViMode := mNormal;
         end;
         Reset(true);
